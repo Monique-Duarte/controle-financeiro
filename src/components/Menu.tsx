@@ -39,43 +39,43 @@ interface AppPage {
 const appPages: AppPage[] = [
   {
     title: 'Dashboard',
-    url: '/Home',
+    url: '/',
     iosIcon: barChartOutline,
     mdIcon: barChartSharp
   },
   {
     title: 'Receita',
-    url: '/folder/Receita',
+    url: '/Receita',
     iosIcon: cashOutline,
     mdIcon: cashSharp
   },
   {
     title: 'Despesas',
-    url: '/folder/Despesas',
+    url: '/Despesa',
     iosIcon: createOutline,
     mdIcon: createSharp
   },
   {
     title: 'Faturas',
-    url: '/folder/Faturas',
+    url: '/Faturas',
     iosIcon: archiveOutline,
     mdIcon: archiveSharp
   },
   {
     title: 'Cartões de crédito',
-    url: '/folder/Cartoes',
+    url: '/Cartoes',
     iosIcon: cardOutline,
     mdIcon: cardSharp
   },
   {
     title: 'Investimentos',
-    url: '/folder/Investimentos',
+    url: '/Investimentos',
     iosIcon: statsChartOutline,
     mdIcon: statsChartSharp
   },
   {
     title: 'Reserva de emergência',
-    url: '/folder/Reserva',
+    url: '/Reserva',
     iosIcon: warningOutline,
     mdIcon: warningSharp
   }

@@ -10,8 +10,11 @@ import {
   IonCol,
   IonCard,
   IonCardHeader,
-  IonCardTitle
+  IonCardTitle,
+  IonButtons,
+  IonMenuButton
 } from '@ionic/react';
+
 import ChartResumo from '../../components/ChartResumo';
 import ChartCategorias from '../../components/ChartCategorias';
 
@@ -20,9 +23,14 @@ const Home: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
+          {/* Botão que abre o menu lateral no mobile */}
+          <IonButtons slot="start">
+            <IonMenuButton />
+          </IonButtons>
           <IonTitle>Dashboard</IonTitle>
         </IonToolbar>
       </IonHeader>
+
       <IonContent className="ion-padding">
         <IonGrid>
           <IonRow>
