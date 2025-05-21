@@ -10,9 +10,24 @@ import {
   IonNote,
 } from '@ionic/react';
 
-import { useLocation } from 'react-router-dom';
-import { archiveOutline, archiveSharp, bookmarkOutline, heartOutline, heartSharp, mailOutline, mailSharp, paperPlaneOutline, paperPlaneSharp, trashOutline, trashSharp, warningOutline, warningSharp } from 'ionicons/icons';
 import './Menu.css';
+
+import { useLocation } from 'react-router-dom';
+import { 
+  archiveOutline, 
+  archiveSharp, 
+  barChartOutline, 
+  barChartSharp, 
+  bookmarkOutline, cardOutline, cardSharp, 
+  cashOutline, 
+  cashSharp, 
+  createOutline, 
+  createSharp, 
+  statsChartOutline, 
+  statsChartSharp, 
+  warningOutline, 
+  warningSharp 
+} from 'ionicons/icons';
 
 interface AppPage {
   url: string;
@@ -23,44 +38,50 @@ interface AppPage {
 
 const appPages: AppPage[] = [
   {
-    title: 'Inbox',
-    url: '/folder/Inbox',
-    iosIcon: mailOutline,
-    mdIcon: mailSharp
+    title: 'Dashboard',
+    url: '/Home',
+    iosIcon: barChartOutline,
+    mdIcon: barChartSharp
   },
   {
-    title: 'Outbox',
-    url: '/folder/Outbox',
-    iosIcon: paperPlaneOutline,
-    mdIcon: paperPlaneSharp
+    title: 'Receita',
+    url: '/folder/Receita',
+    iosIcon: cashOutline,
+    mdIcon: cashSharp
   },
   {
-    title: 'Favorites',
-    url: '/folder/Favorites',
-    iosIcon: heartOutline,
-    mdIcon: heartSharp
+    title: 'Despesas',
+    url: '/folder/Despesas',
+    iosIcon: createOutline,
+    mdIcon: createSharp
   },
   {
-    title: 'Archived',
-    url: '/folder/Archived',
+    title: 'Faturas',
+    url: '/folder/Faturas',
     iosIcon: archiveOutline,
     mdIcon: archiveSharp
   },
   {
-    title: 'Trash',
-    url: '/folder/Trash',
-    iosIcon: trashOutline,
-    mdIcon: trashSharp
+    title: 'Cartões de crédito',
+    url: '/folder/Cartoes',
+    iosIcon: cardOutline,
+    mdIcon: cardSharp
   },
   {
-    title: 'Spam',
-    url: '/folder/Spam',
+    title: 'Investimentos',
+    url: '/folder/Investimentos',
+    iosIcon: statsChartOutline,
+    mdIcon: statsChartSharp
+  },
+  {
+    title: 'Reserva de emergência',
+    url: '/folder/Reserva',
     iosIcon: warningOutline,
     mdIcon: warningSharp
   }
 ];
 
-const labels = ['Family', 'Friends', 'Notes', 'Work', 'Travel', 'Reminders'];
+const labels = ['Casa', 'Saúde', 'Transporte', 'Alimentação', 'Mercado', 'Pet', 'Telefone', 'Viagem', 'Presente', 'Confraternização', 'Outros'];
 
 const Menu: React.FC = () => {
   const location = useLocation();
@@ -69,8 +90,8 @@ const Menu: React.FC = () => {
     <IonMenu contentId="main" type="overlay">
       <IonContent>
         <IonList id="inbox-list">
-          <IonListHeader>Inbox</IonListHeader>
-          <IonNote>hi@ionicframework.com</IonNote>
+          <IonListHeader>MENU</IonListHeader>
+          <IonNote>Controle financeiro</IonNote>
           {appPages.map((appPage, index) => {
             return (
               <IonMenuToggle key={index} autoHide={false}>
@@ -84,7 +105,7 @@ const Menu: React.FC = () => {
         </IonList>
 
         <IonList id="labels-list">
-          <IonListHeader>Labels</IonListHeader>
+          <IonListHeader>Categoria</IonListHeader>
           {labels.map((label, index) => (
             <IonItem lines="none" key={index}>
               <IonIcon aria-hidden="true" slot="start" icon={bookmarkOutline} />
