@@ -1,0 +1,8 @@
+{
+  "name": "Controle Financeiro",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite",
+  "id": "bb389197"
+}
