@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   IonPage,
   IonHeader,
@@ -17,13 +17,17 @@ import {
 
 import ChartResumo from '../../components/ChartResumo';
 import ChartCategorias from '../../components/ChartCategorias';
+import Categorias from '../../components/Categorias';
+
+import { categoriasPredefinidas } from '../../components/categories';
 
 const Home: React.FC = () => {
+  const [valoresPorCategoria, setValoresPorCategoria] = useState<Record<string, number[]>>({});
+
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          {/* Botão que abre o menu lateral no mobile */}
           <IonButtons slot="start">
             <IonMenuButton />
           </IonButtons>
@@ -33,6 +37,7 @@ const Home: React.FC = () => {
 
       <IonContent className="ion-padding">
         <IonGrid>
+
           <IonRow>
             <IonCol size="12" sizeMd="6">
               <IonCard>
@@ -48,10 +53,30 @@ const Home: React.FC = () => {
                 <IonCardHeader>
                   <IonCardTitle>Gastos por Categoria</IonCardTitle>
                 </IonCardHeader>
-                <ChartCategorias />
+                <ChartCategorias
+                  categorias={categoriasPredefinidas}
+                  valoresPorCategoria={valoresPorCategoria}
+                />
               </IonCard>
             </IonCol>
           </IonRow>
+
+          <IonRow>
+            <IonCol size="12">
+              <IonCard>
+                <IonCardHeader>
+                  <IonCardTitle>Lançar Gastos</IonCardTitle>
+                </IonCardHeader>
+                <Categorias
+                  categorias={categoriasPredefinidas}
+                  valoresPorCategoriaInicial={valoresPorCategoria}
+                  onValoresChange={setValoresPorCategoria}
+                  modoEdicao={true}
+                />
+              </IonCard>
+            </IonCol>
+          </IonRow>
+
         </IonGrid>
       </IonContent>
     </IonPage>

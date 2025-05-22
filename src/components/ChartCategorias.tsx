@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   PieChart,
   Pie,
@@ -7,47 +7,17 @@ import {
   ResponsiveContainer,
   Sector,
 } from 'recharts';
+import { Categoria } from './categories'; // importa a tipagem
 
-interface CategoriaData {
-  name: string;
-  value: number;
+interface ChartCategoriasProps {
+  categorias: Categoria[];
+  valoresPorCategoria: Record<string, number[]>;
 }
-
-interface LegendPayload {
-  id: string | number;
-  value: string;
-  type: 'line' | 'square' | 'circle' | 'cross' | 'diamond' | 'star' | 'triangle' | 'wye';
-  color: string;
-  payloadIndex?: number;
-}
-
-const dadosCategorias: CategoriaData[] = [
-  { name: 'Casa', value: 500 },
-  { name: 'Saúde', value: 200 },
-  { name: 'Transporte', value: 300 },
-  { name: 'Alimentação', value: 450 },
-  { name: 'Mercado', value: 600 },
-  { name: 'Pet', value: 150 },
-  { name: 'Telefone', value: 100 },
-  { name: 'Viagem', value: 350 },
-  { name: 'Presente', value: 120 },
-  { name: 'Confraternização', value: 180 },
-  { name: 'Outros', value: 250 }
-];
 
 const coresCategorias = [
   '#000D0A', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#00058F',
   '#14b8a6', '#6B0504', '#0ea5e9', '#BA6EA2', '#6b7280'
 ];
-
-const legendPayload: LegendPayload[] = dadosCategorias.map((d, index) => ({
-  id: d.name,
-  value: d.name, // apenas o nome
-  type: 'square',
-  color: coresCategorias[index % coresCategorias.length],
-  payloadIndex: index
-}));
-
 
 const renderActiveShape = (props: any) => {
   const {
@@ -93,28 +63,29 @@ const renderActiveShape = (props: any) => {
   );
 };
 
-const ChartCategorias: React.FC = () => {
+const ChartCategorias: React.FC<ChartCategoriasProps> = ({ categorias, valoresPorCategoria }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const onPieEnter = (_: any, index: number) => {
-    setActiveIndex(index);
-  };
+  // Calcula os dados totais por categoria dinamicamente
+  const dadosCategorias = useMemo(() => {
+    return categorias
+      .map((cat, index) => {
+        const valores = valoresPorCategoria[cat.id] || [];
+        const total = valores.reduce((sum, val) => sum + val, 0);
+        return { name: cat.nome, value: total };
+      })
+      .filter(cat => cat.value > 0); // remove categorias zeradas
+  }, [categorias, valoresPorCategoria]);
 
-  const onPieLeave = () => {
-    setActiveIndex(null);
-  };
-
-  const onLegendMouseEnter = (data: LegendPayload) => {
-    if (typeof data.payloadIndex === 'number' && data.payloadIndex >= 0) {
-      setActiveIndex(data.payloadIndex);
-    } else {
-      setActiveIndex(null);
-    }
-  };
-
-  const onLegendMouseLeave = () => {
-    setActiveIndex(null);
-  };
+  const legendPayload = useMemo(() => {
+    return dadosCategorias.map((d, index) => ({
+      id: d.name,
+      value: d.name,
+      type: 'square',
+      color: coresCategorias[index % coresCategorias.length],
+      payloadIndex: index
+    }));
+  }, [dadosCategorias]);
 
   return (
     <ResponsiveContainer width="100%" height={300}>
@@ -128,18 +99,17 @@ const ChartCategorias: React.FC = () => {
           outerRadius={80}
           activeIndex={activeIndex === null ? undefined : activeIndex}
           activeShape={renderActiveShape}
-          onMouseEnter={onPieEnter}
-          onMouseLeave={onPieLeave}
-          animationDuration={300}
+          onMouseEnter={(_, index) => setActiveIndex(index)}
+          onMouseLeave={() => setActiveIndex(null)}
         >
-          {dadosCategorias.map((entry, index) => (
+          {dadosCategorias.map((_, index) => (
             <Cell key={`cell-${index}`} fill={coresCategorias[index % coresCategorias.length]} />
           ))}
         </Pie>
         <Legend
           payload={legendPayload}
-          onMouseEnter={onLegendMouseEnter}
-          onMouseLeave={onLegendMouseLeave}
+          onMouseEnter={(e) => setActiveIndex(e.payloadIndex ?? null)}
+          onMouseLeave={() => setActiveIndex(null)}
         />
       </PieChart>
     </ResponsiveContainer>
