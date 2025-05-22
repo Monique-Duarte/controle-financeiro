@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import CategoriaItem from './CategoriaItem';
-import { categoriasPredefinidas, Categoria } from './categories';
+import { categoriasPredefinidas, Categoria } from './categoriasPredefinidas';
 import './Categorias.css';
 
 interface CategoriasProps {

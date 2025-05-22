@@ -29,14 +29,22 @@
   outline: none;
 }
 
+.legend-receita {
+  background-color: #3b82f6;
+}
+
+.legend-despesa {
+  background-color: #ef4444;
+}
+
 .legend-item.active {
   font-weight: 700;
   color: #000;
 }
 
 .legend-color {
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   margin-right: 6px;
 }

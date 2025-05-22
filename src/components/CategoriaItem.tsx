@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Categoria } from './categories';
+import { Categoria } from './categoriasPredefinidas';
 
 interface CategoriaItemProps {
   categoria: Categoria;
