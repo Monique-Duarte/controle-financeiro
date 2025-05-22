@@ -1,0 +1,15 @@
+.titulo-tabela {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+} 
+
+.tabela-linha {
+  text-align: center;
+  padding: 0, 0, 0, 0;
+}
+
+.tabela-valor {
+  text-align: end;
+}

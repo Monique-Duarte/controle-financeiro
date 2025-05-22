@@ -19,16 +19,22 @@ import {
   IonCardContent,
   IonText,
   IonCheckbox,
+  IonSelect,
+  IonSelectOption,
+  IonButtons,
+  IonMenuButton,
 } from '@ionic/react';
 
-
+import './Despesas.css';
+import { categoriasPredefinidas, Categoria } from '../../components/categoriasPredefinidas';
 
 type DespesaTipo = {
   data: string;
   descricao: string;
   valor: string;
   parcelas: number;
-  fixa: boolean; // ✅ Novo campo
+  fixa: boolean;
+  categoria: Categoria;
 };
 
 const Despesa: React.FC = () => {
@@ -37,12 +43,21 @@ const Despesa: React.FC = () => {
   const [descricao, setDescricao] = useState('');
   const [valor, setValor] = useState('');
   const [parcelas, setParcelas] = useState(1);
-  const [fixa, setFixa] = useState(false); // ✅ Novo estado
+  const [fixa, setFixa] = useState(false);
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState<Categoria | undefined>(undefined);
   const [despesas, setDespesas] = useState<DespesaTipo[]>([]);
+  const [itemExpandido, setItemExpandido] = useState<number | null>(null);
 
   const adicionarDespesa = () => {
-    if (data && descricao && valor && parcelas > 0) {
-      const novaDespesa: DespesaTipo = { data, descricao, valor, parcelas, fixa };
+    if (data && descricao && valor && parcelas > 0 && categoriaSelecionada) {
+      const novaDespesa: DespesaTipo = {
+        data,
+        descricao,
+        valor,
+        parcelas,
+        fixa,
+        categoria: categoriaSelecionada,
+      };
       setDespesas([...despesas, novaDespesa]);
 
       // Resetar campos
@@ -51,6 +66,7 @@ const Despesa: React.FC = () => {
       setValor('');
       setParcelas(1);
       setFixa(false);
+      setCategoriaSelecionada(undefined);
       setMostrarFormulario(false);
     }
   };
@@ -61,11 +77,18 @@ const Despesa: React.FC = () => {
     return d.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
   };
 
+  const toggleExpandir = (index: number) => {
+    setItemExpandido(itemExpandido === index ? null : index);
+  };
+
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Despesas</IonTitle>
+          <IonButtons slot="start">
+            <IonMenuButton />
+          </IonButtons>
+          <IonTitle>Desperas</IonTitle>
         </IonToolbar>
       </IonHeader>
 
@@ -85,16 +108,34 @@ const Despesa: React.FC = () => {
                 <IonDatetime
                   presentation="date"
                   value={data}
-                  onIonChange={e => setData(e.detail.value!)}
+                  onIonChange={(e) => setData(e.detail.value!)}
                 />
               </IonItem>
 
               <IonItem>
-                <IonLabel position="stacked">Descrição</IonLabel>
+                <IonLabel position="stacked">Tipo</IonLabel>
+                <IonSelect
+                  placeholder="Selecione uma categoria"
+                  value={categoriaSelecionada?.id}
+                  onIonChange={(e) => {
+                    const cat = categoriasPredefinidas.find(c => c.id === e.detail.value);
+                    setCategoriaSelecionada(cat);
+                  }}
+                >
+                  {categoriasPredefinidas.map((cat) => (
+                    <IonSelectOption key={cat.id} value={cat.id}>
+                      {cat.nome}
+                    </IonSelectOption>
+                  ))}
+                </IonSelect>
+              </IonItem>
+
+              <IonItem>
+                <IonLabel position="stacked">Observação</IonLabel>
                 <IonInput
                   value={descricao}
-                  placeholder="Ex: Aluguel, Supermercado, Transporte"
-                  onIonInput={e => setDescricao(e.detail.value!)}
+                  placeholder="Ex: Conta de luz, Uber, Compra no mercado"
+                  onIonInput={(e) => setDescricao(e.detail.value!)}
                 />
               </IonItem>
 
@@ -104,7 +145,7 @@ const Despesa: React.FC = () => {
                   type="number"
                   value={valor}
                   placeholder="Ex: 1500"
-                  onIonInput={e => setValor(e.detail.value!)}
+                  onIonInput={(e) => setValor(e.detail.value!)}
                 />
               </IonItem>
 
@@ -114,7 +155,7 @@ const Despesa: React.FC = () => {
                   type="number"
                   min={1}
                   value={parcelas.toString()}
-                  onIonInput={e => {
+                  onIonInput={(e) => {
                     const val = parseInt(e.detail.value!, 10);
                     if (!isNaN(val) && val > 0) setParcelas(val);
                   }}
@@ -125,7 +166,7 @@ const Despesa: React.FC = () => {
                 <IonLabel>Despesa Fixa?</IonLabel>
                 <IonCheckbox
                   checked={fixa}
-                  onIonChange={e => setFixa(e.detail.checked)}
+                  onIonChange={(e) => setFixa(e.detail.checked)}
                   slot="end"
                 />
               </IonItem>
@@ -145,22 +186,33 @@ const Despesa: React.FC = () => {
             {despesas.length === 0 ? (
               <IonText color="medium">Nenhuma despesa lançada.</IonText>
             ) : (
-              <IonGrid>
-                <IonRow>
-                  <IonCol size="auto"><strong>Data</strong></IonCol>
-                  <IonCol><strong>Descrição</strong></IonCol>
-                  <IonCol size="auto"><strong>Parcelas</strong></IonCol>
-                  <IonCol size="auto"><strong>Valor</strong></IonCol>
-                </IonRow>
+              <>
                 {despesas.map((d, i) => (
-                  <IonRow key={i}>
-                    <IonCol size="auto">{formatarDataAbreviada(d.data)}</IonCol>
-                    <IonCol>{d.descricao}</IonCol>
-                    <IonCol>{d.parcelas}</IonCol>
-                    <IonCol size="auto">R$ {(parseFloat(d.valor) / d.parcelas).toFixed(2)}</IonCol>
-                  </IonRow>
+                  <IonCard key={i} onClick={() => toggleExpandir(i)} style={{ cursor: 'pointer', marginBottom: '1rem' }}>
+                    <IonGrid className='tabela-despesas'>
+                      <IonRow className='tabela-linha'>
+                        <IonCol size="3"><strong>Data</strong></IonCol>
+                        <IonCol size="2"><strong>Tipo</strong></IonCol>
+                        <IonCol size="3"><strong>Parcela</strong></IonCol>
+                        <IonCol size="4"><strong>Valor</strong></IonCol>
+                      </IonRow>
+                      <IonRow className='tabela-linha'>
+                        <IonCol size="3">{formatarDataAbreviada(d.data)}</IonCol>
+                        <IonCol size="2">{d.categoria.icone}</IonCol>
+                        <IonCol size="2">{d.parcelas}</IonCol>
+                        <IonCol className='tabela-valor' size="5">R$ {(parseFloat(d.valor) / d.parcelas).toFixed(2)}</IonCol>
+                      </IonRow>
+                      {itemExpandido === i && (
+                        <IonRow>
+                          <IonCol size="12" style={{ paddingLeft: '0.5rem', paddingTop: '0.5rem', fontStyle: 'italic', color: '#666' }}>
+                            {d.descricao ? `Observação: ${d.descricao}` : <em>Sem observação</em>}
+                          </IonCol>
+                        </IonRow>
+                      )}
+                    </IonGrid>
+                  </IonCard>
                 ))}
-              </IonGrid>
+              </>
             )}
           </IonCardContent>
         </IonCard>
