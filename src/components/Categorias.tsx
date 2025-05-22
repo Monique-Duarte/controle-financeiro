@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import CategoriaItem from './CategoriaItem';
 import { categoriasPredefinidas, Categoria } from './categoriasPredefinidas';
 import './Categorias.css';
+import { adicionarDespesa } from '../firebaseFunctions';
 
 interface CategoriasProps {
   categorias?: Categoria[];
@@ -18,13 +19,32 @@ const Categorias: React.FC<CategoriasProps> = ({
 }) => {
   const [valoresPorCategoria, setValoresPorCategoria] = useState<Record<string, number[]>>(valoresPorCategoriaInicial);
 
-  const adicionarValor = (categoriaId: string, valor: number) => {
-    setValoresPorCategoria(prev => {
-      const novosValores = prev[categoriaId] ? [...prev[categoriaId], valor] : [valor];
-      const atualizados = { ...prev, [categoriaId]: novosValores };
-      onValoresChange && onValoresChange(atualizados);
-      return atualizados;
-    });
+  // Ajuste para salvar a despesa no Firestore com data como objeto Date
+  const adicionarValor = async (categoriaId: string, valor: number) => {
+    const dataAtual = new Date(); // data como objeto Date (não string)
+
+    try {
+      // Salvar despesa no Firestore
+      await adicionarDespesa({
+        categoria: categoriaId,
+        valor,
+        data: dataAtual,
+        observacao: '', // você pode adicionar campos adicionais ou passar como parâmetro
+        parcela: 1,
+        fixo: false,
+      });
+
+      // Atualizar estado local para refletir a mudança na UI
+      setValoresPorCategoria(prev => {
+        const novosValores = prev[categoriaId] ? [...prev[categoriaId], valor] : [valor];
+        const atualizados = { ...prev, [categoriaId]: novosValores };
+        if (onValoresChange) onValoresChange(atualizados);
+        return atualizados;
+      });
+    } catch (error) {
+      alert('Erro ao lançar despesa. Verifique sua conexão.');
+      console.error('Erro ao salvar despesa:', error);
+    }
   };
 
   return (

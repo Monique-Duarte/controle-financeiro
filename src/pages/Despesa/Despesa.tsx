@@ -1,66 +1,110 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
   IonButton,
-  IonGrid,
-  IonRow,
-  IonCol,
-  IonInput,
-  IonLabel,
-  IonItem,
-  IonDatetime,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonText,
-  IonCheckbox,
-  IonSelect,
-  IonSelectOption,
   IonButtons,
-  IonMenuButton,
+  IonContent,
+  IonHeader,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonPage,
+  IonTitle,
+  IonToast,
+  IonToggle,
+  IonToolbar,
+  IonInput,
+  IonDatetimeButton,
+  IonModal,
+  IonText,
+  IonIcon,
 } from '@ionic/react';
+import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc } from 'firebase/firestore';
+import { chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
+import { categoriasPredefinidas } from '../../components/categoriasPredefinidas';
+import { db } from '../../firebase';
 
-import './Despesas.css';
-import { categoriasPredefinidas, Categoria } from '../../components/categoriasPredefinidas';
+const despesasRef = collection(db, 'despesas');
 
-type DespesaTipo = {
+export interface DespesaTipo {
+  id?: string;
   data: string;
   descricao: string;
   valor: string;
   parcelas: number;
   fixa: boolean;
-  categoria: Categoria;
-};
+  categoria: {
+    id: string;
+    nome: string;
+    cor: string;
+    icone: string;
+  };
+}
 
-const Despesa: React.FC = () => {
+const DespesasPage: React.FC = () => {
+  const [despesas, setDespesas] = useState<DespesaTipo[]>([]);
+  const [carregando, setCarregando] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
+
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [data, setData] = useState('');
   const [descricao, setDescricao] = useState('');
   const [valor, setValor] = useState('');
   const [parcelas, setParcelas] = useState(1);
   const [fixa, setFixa] = useState(false);
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState<Categoria | undefined>(undefined);
-  const [despesas, setDespesas] = useState<DespesaTipo[]>([]);
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState<any>();
   const [itemExpandido, setItemExpandido] = useState<number | null>(null);
+  const [despesaEditando, setDespesaEditando] = useState<DespesaTipo | null>(null);
 
-  const adicionarDespesa = () => {
-    if (data && descricao && valor && parcelas > 0 && categoriaSelecionada) {
-      const novaDespesa: DespesaTipo = {
-        data,
-        descricao,
-        valor,
-        parcelas,
-        fixa,
-        categoria: categoriaSelecionada,
-      };
-      setDespesas([...despesas, novaDespesa]);
+  const carregarDespesas = async () => {
+    setCarregando(true);
+    try {
+      const q = query(despesasRef, orderBy('data', 'desc'));
+      const snapshot = await getDocs(q);
+      const lista: DespesaTipo[] = snapshot.docs.map(doc => {
+        const dados = doc.data();
+        return {
+          id: doc.id,
+          data: dados.data,
+          descricao: dados.descricao,
+          valor: dados.valor,
+          parcelas: dados.parcelas,
+          fixa: dados.fixa,
+          categoria: categoriasPredefinidas.find(c => c.id === dados.categoria) || categoriasPredefinidas[0],
+        };
+      });
+      setDespesas(lista);
+    } catch (error) {
+      console.error("Erro ao carregar despesas:", error);
+      setToastMsg("Erro ao carregar despesas.");
+    }
+    setCarregando(false);
+  };
 
-      // Resetar campos
+  const salvarDespesa = async () => {
+    const valorNumero = parseFloat(valor.replace(',', '.'));
+    if (!data || !categoriaSelecionada || !descricao || isNaN(valorNumero) || parcelas <= 0) {
+      setToastMsg('Preencha todos os campos corretamente.');
+      return;
+    }
+
+    const dados = {
+      data: new Date(data).toISOString().substring(0, 10),
+      descricao,
+      valor: valorNumero.toFixed(2),
+      parcelas,
+      fixa,
+      categoria: categoriaSelecionada.id,
+    };
+
+    try {
+      if (despesaEditando) {
+        await updateDoc(doc(despesasRef, despesaEditando.id!), dados);
+        setToastMsg('Despesa atualizada!');
+      } else {
+        await addDoc(despesasRef, dados);
+        setToastMsg('Despesa adicionada!');
+      }
+      carregarDespesas();
       setData('');
       setDescricao('');
       setValor('');
@@ -68,157 +112,111 @@ const Despesa: React.FC = () => {
       setFixa(false);
       setCategoriaSelecionada(undefined);
       setMostrarFormulario(false);
+      setDespesaEditando(null);
+    } catch (error) {
+      console.error(error);
+      setToastMsg('Erro ao salvar despesa.');
     }
   };
 
-  const formatarDataAbreviada = (dataISO: string) => {
-    if (!dataISO) return '';
-    const d = new Date(dataISO);
-    return d.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
+  const removerDespesa = async (id: string) => {
+    try {
+      await deleteDoc(doc(despesasRef, id));
+      setToastMsg('Despesa excluída com sucesso!');
+      carregarDespesas();
+    } catch (error) {
+      console.error('Erro ao excluir:', error);
+      setToastMsg('Erro ao excluir despesa.');
+    }
   };
 
-  const toggleExpandir = (index: number) => {
-    setItemExpandido(itemExpandido === index ? null : index);
-  };
+  useEffect(() => {
+    carregarDespesas();
+  }, []);
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonButtons slot="start">
-            <IonMenuButton />
+          <IonTitle>Despesas</IonTitle>
+          <IonButtons slot="end">
+            <IonButton onClick={() => {
+              setMostrarFormulario(!mostrarFormulario);
+              if (!mostrarFormulario) setDespesaEditando(null);
+            }}>
+              {mostrarFormulario ? 'Fechar' : 'Lançar Nova'}
+            </IonButton>
           </IonButtons>
-          <IonTitle>Desperas</IonTitle>
         </IonToolbar>
       </IonHeader>
-
-      <IonContent className="ion-padding">
-        <IonButton expand="block" onClick={() => setMostrarFormulario(!mostrarFormulario)}>
-          Lançar nova Despesa
-        </IonButton>
-
+      <IonContent>
         {mostrarFormulario && (
-          <IonCard>
-            <IonCardHeader>
-              <IonCardTitle>Nova Despesa</IonCardTitle>
-            </IonCardHeader>
-            <IonCardContent>
-              <IonItem>
-                <IonLabel position="stacked">Data</IonLabel>
-                <IonDatetime
-                  presentation="date"
-                  value={data}
-                  onIonChange={(e) => setData(e.detail.value!)}
-                />
-              </IonItem>
-
-              <IonItem>
-                <IonLabel position="stacked">Tipo</IonLabel>
-                <IonSelect
-                  placeholder="Selecione uma categoria"
-                  value={categoriaSelecionada?.id}
-                  onIonChange={(e) => {
-                    const cat = categoriasPredefinidas.find(c => c.id === e.detail.value);
-                    setCategoriaSelecionada(cat);
-                  }}
-                >
-                  {categoriasPredefinidas.map((cat) => (
-                    <IonSelectOption key={cat.id} value={cat.id}>
-                      {cat.nome}
-                    </IonSelectOption>
-                  ))}
-                </IonSelect>
-              </IonItem>
-
-              <IonItem>
-                <IonLabel position="stacked">Observação</IonLabel>
-                <IonInput
-                  value={descricao}
-                  placeholder="Ex: Conta de luz, Uber, Compra no mercado"
-                  onIonInput={(e) => setDescricao(e.detail.value!)}
-                />
-              </IonItem>
-
-              <IonItem>
-                <IonLabel position="stacked">Valor</IonLabel>
-                <IonInput
-                  type="number"
-                  value={valor}
-                  placeholder="Ex: 1500"
-                  onIonInput={(e) => setValor(e.detail.value!)}
-                />
-              </IonItem>
-
-              <IonItem>
-                <IonLabel position="stacked">Parcelas</IonLabel>
-                <IonInput
-                  type="number"
-                  min={1}
-                  value={parcelas.toString()}
-                  onIonInput={(e) => {
-                    const val = parseInt(e.detail.value!, 10);
-                    if (!isNaN(val) && val > 0) setParcelas(val);
-                  }}
-                />
-              </IonItem>
-
-              <IonItem lines="none">
-                <IonLabel>Despesa Fixa?</IonLabel>
-                <IonCheckbox
-                  checked={fixa}
-                  onIonChange={(e) => setFixa(e.detail.checked)}
-                  slot="end"
-                />
-              </IonItem>
-
-              <IonButton expand="block" onClick={adicionarDespesa} className="ion-margin-top">
-                Adicionar Despesa
-              </IonButton>
-            </IonCardContent>
-          </IonCard>
+          <div className="ion-padding">
+            <IonItem>
+              <IonLabel>Data</IonLabel>
+              <IonDatetimeButton datetime="dataDespesa" />
+              <IonModal keepContentsMounted>
+                <IonDatetime id="dataDespesa" value={data} onIonChange={e => setData(e.detail.value!)}></IonDatetime>
+              </IonModal>
+            </IonItem>
+            <IonInput label="Descrição" value={descricao} onIonChange={e => setDescricao(e.detail.value!)} />
+            <IonInput label="Valor" type="number" value={valor} onIonChange={e => setValor(e.detail.value!)} />
+            <IonInput label="Parcelas" type="number" value={parcelas} onIonChange={e => setParcelas(parseInt(e.detail.value!))} />
+            <IonItem>
+              <IonLabel>Fixa?</IonLabel>
+              <IonToggle checked={fixa} onIonChange={e => setFixa(e.detail.checked)} />
+            </IonItem>
+            <IonList>
+              {categoriasPredefinidas.map((c) => (
+                <IonItem key={c.id} button onClick={() => setCategoriaSelecionada(c)} color={categoriaSelecionada?.id === c.id ? 'light' : ''}>
+                  <IonLabel>{c.nome}</IonLabel>
+                </IonItem>
+              ))}
+            </IonList>
+            <IonButton expand="block" onClick={salvarDespesa} className="ion-margin-top">
+              {despesaEditando ? 'Salvar Alterações' : 'Adicionar Despesa'}
+            </IonButton>
+          </div>
         )}
 
-        <IonCard>
-          <IonCardHeader>
-            <IonCardTitle>Despesas Lançadas</IonCardTitle>
-          </IonCardHeader>
-          <IonCardContent>
-            {despesas.length === 0 ? (
-              <IonText color="medium">Nenhuma despesa lançada.</IonText>
-            ) : (
-              <>
-                {despesas.map((d, i) => (
-                  <IonCard key={i} onClick={() => toggleExpandir(i)} style={{ cursor: 'pointer', marginBottom: '1rem' }}>
-                    <IonGrid className='tabela-despesas'>
-                      <IonRow className='tabela-linha'>
-                        <IonCol size="3"><strong>Data</strong></IonCol>
-                        <IonCol size="2"><strong>Tipo</strong></IonCol>
-                        <IonCol size="3"><strong>Parcela</strong></IonCol>
-                        <IonCol size="4"><strong>Valor</strong></IonCol>
-                      </IonRow>
-                      <IonRow className='tabela-linha'>
-                        <IonCol size="3">{formatarDataAbreviada(d.data)}</IonCol>
-                        <IonCol size="2">{d.categoria.icone}</IonCol>
-                        <IonCol size="2">{d.parcelas}</IonCol>
-                        <IonCol className='tabela-valor' size="5">R$ {(parseFloat(d.valor) / d.parcelas).toFixed(2)}</IonCol>
-                      </IonRow>
-                      {itemExpandido === i && (
-                        <IonRow>
-                          <IonCol size="12" style={{ paddingLeft: '0.5rem', paddingTop: '0.5rem', fontStyle: 'italic', color: '#666' }}>
-                            {d.descricao ? `Observação: ${d.descricao}` : <em>Sem observação</em>}
-                          </IonCol>
-                        </IonRow>
-                      )}
-                    </IonGrid>
-                  </IonCard>
-                ))}
-              </>
-            )}
-          </IonCardContent>
-        </IonCard>
+        <IonList>
+          {despesas.map((d, i) => (
+            <IonItem key={d.id} button onClick={() => setItemExpandido(itemExpandido === i ? null : i)}>
+              <IonLabel>
+                <IonText color="medium">{d.data}</IonText><br />
+                <strong>{d.descricao}</strong> - R$ {d.valor}
+              </IonLabel>
+              <IonIcon icon={itemExpandido === i ? chevronUpOutline : chevronDownOutline} slot="end" />
+              {itemExpandido === i && (
+                <div className="ion-padding">
+                  <p>Categoria: {d.categoria.nome}</p>
+                  <p>Parcelas: {d.parcelas}</p>
+                  <p>Fixa: {d.fixa ? 'Sim' : 'Não'}</p>
+                  <IonButton color="medium" size="small" onClick={(e) => {
+                    e.stopPropagation();
+                    setDespesaEditando(d);
+                    setMostrarFormulario(true);
+                    setData(d.data);
+                    setDescricao(d.descricao);
+                    setValor(d.valor);
+                    setParcelas(d.parcelas);
+                    setFixa(d.fixa);
+                    setCategoriaSelecionada(d.categoria);
+                  }}>Editar</IonButton>
+                  <IonButton color="danger" size="small" onClick={(e) => {
+                    e.stopPropagation();
+                    removerDespesa(d.id!);
+                  }}>Excluir</IonButton>
+                </div>
+              )}
+            </IonItem>
+          ))}
+        </IonList>
+
+        <IonToast isOpen={!!toastMsg} message={toastMsg} duration={2500} onDidDismiss={() => setToastMsg('')} />
       </IonContent>
     </IonPage>
   );
 };
 
-export default Despesa;
+export default DespesasPage;
