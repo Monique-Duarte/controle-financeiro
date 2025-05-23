@@ -2,6 +2,7 @@ import { collection, addDoc } from 'firebase/firestore';
 import { db } from './firebase'; // caminho para sua config do firebase
 
 interface Despesa {
+  id: string,
   categoria: string;
   valor: number;
   data: Date;

@@ -15,11 +15,8 @@ import {
   IonMenuButton
 } from '@ionic/react';
 
-import Categorias from '../../components/Categorias';
-
-import { categoriasPredefinidas } from '../../components/categoriasPredefinidas';
-import ResumoContainer from '../../components/ChartResumo/ResumoContainer';
-import CategoriasContainer from '../../components/ChartCategorias/CategoriasContainer';
+import ResumoContainer from '../../components/GraficoResumo/ResumoContainer';
+import CategoriasContainer from '../../components/GrafcoCategorias/CategoriasContainer';
 
 const Home: React.FC = () => {
   return (
@@ -56,24 +53,6 @@ const Home: React.FC = () => {
               </IonCard>
             </IonCol>
           </IonRow>
-
-          {/* CATEGORIAS DE GASTOS */}
-          <IonRow>
-            <IonCol size="12">
-              <IonCard>
-                <IonCardHeader>
-                  <IonCardTitle>Lançar Gastos</IonCardTitle>
-                </IonCardHeader>
-                <Categorias
-                  categorias={categoriasPredefinidas}
-                  valoresPorCategoriaInicial={{}} // valor inicial vazio, pois não usamos mais aqui
-                  onValoresChange={() => {}} // função vazia por enquanto
-                  modoEdicao={true}
-                />
-              </IonCard>
-            </IonCol>
-          </IonRow>
-
         </IonGrid>
       </IonContent>
     </IonPage>
