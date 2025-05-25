@@ -1,0 +1,85 @@
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 1rem 2rem;
+  gap: 1rem;
+}
+
+.chart-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #111827;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.3s ease;
+  outline: none;
+}
+
+.legend-receita {
+  background-color: #3b82f6;
+}
+
+.legend-despesa {
+  background-color: #ef4444;
+}
+
+.legend-item.active {
+  font-weight: 700;
+  color: #000;
+}
+
+.legend-color {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.cell {
+  transform-origin: 50% 50%;
+  transition: transform 0.3s ease;
+}
+
+.cell.active {
+  transform: scale(1.1);
+}
+
+.saldo-text {
+  font-size: 16px;
+  font-weight: bold;
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.1));
+}
+
+.saldo-text.positivo {
+  fill: #10b981;
+}
+
+.saldo-text.negativo {
+  fill: #ef4444;
+}
+
+/* Layout horizontal para telas maiores */
+@media (min-width: 768px) {
+  .chart-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .chart-legend {
+    flex-direction: row;
+  }
+}

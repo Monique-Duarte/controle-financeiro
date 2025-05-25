@@ -1,0 +1,76 @@
+.categorias-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+.categoria-item {
+  border: 2px solid;
+  border-radius: 12px;
+  padding: 1rem;
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.1);
+  background-color: #fff;
+}
+
+.categoria-header {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.categoria-icone {
+  font-size: 1.5rem;
+}
+
+.categoria-valor-total {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
+}
+
+.categoria-input-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap; 
+  align-items: center; 
+}
+
+
+.categoria-input-group input {
+  flex: 1 1 0;
+  min-width: 0; 
+  padding: 0.4rem 0.6rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline-offset: 2px;
+  outline-color: transparent;
+  transition: outline-color 0.3s ease;
+}
+
+.categoria-input-group input:focus {
+  outline-color: #3b82f6;
+}
+
+.categoria-input-group button {
+  padding: 0.4rem 0.8rem;
+  background-color: #3b82f6;
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.categoria-input-group button:hover {
+  background-color: #2563eb;
+}
