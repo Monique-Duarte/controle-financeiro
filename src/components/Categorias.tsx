@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import CategoriaItem from './CategoriaItem';
 import { categoriasPredefinidas, Categoria } from './categoriasPredefinidas';
-import './Categorias.css';
+import '../App.css';
+import { adicionarDespesa } from '../services/firebaseFunctions';
+import { getCategoriaPorId } from '../utils/utilsCategorias';
 
 interface CategoriasProps {
   categorias?: Categoria[];
@@ -18,13 +20,33 @@ const Categorias: React.FC<CategoriasProps> = ({
 }) => {
   const [valoresPorCategoria, setValoresPorCategoria] = useState<Record<string, number[]>>(valoresPorCategoriaInicial);
 
-  const adicionarValor = (categoriaId: string, valor: number) => {
-    setValoresPorCategoria(prev => {
-      const novosValores = prev[categoriaId] ? [...prev[categoriaId], valor] : [valor];
-      const atualizados = { ...prev, [categoriaId]: novosValores };
-      onValoresChange && onValoresChange(atualizados);
-      return atualizados;
-    });
+  const adicionarValor = async (categoriaId: string, valor: number) => {
+    const categoria = getCategoriaPorId(categoriaId);
+    if (!categoria) {
+      alert('Categoria inválida');
+      return;
+    }
+
+    try {
+      await adicionarDespesa({
+        categoria,          
+        valor: valor.toString(),
+        data: new Date(),
+        observacao: '',
+        parcela: 1,
+        fixo: false,
+      });
+
+      setValoresPorCategoria(prev => {
+        const novosValores = prev[categoriaId] ? [...prev[categoriaId], valor] : [valor];
+        const atualizados = { ...prev, [categoriaId]: novosValores };
+        if (onValoresChange) onValoresChange(atualizados);
+        return atualizados;
+      });
+    } catch (error) {
+      alert('Erro ao lançar despesa. Verifique sua conexão.');
+      console.error('Erro ao salvar despesa:', error);
+    }
   };
 
   return (

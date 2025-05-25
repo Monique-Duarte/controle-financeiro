@@ -10,7 +10,7 @@ import {
   IonNote,
 } from '@ionic/react';
 
-import './Menu.css';
+import '../App.css';
 
 import { useLocation } from 'react-router-dom';
 import { 
