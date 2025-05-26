@@ -114,7 +114,7 @@ ion-item.selected {
 } 
 
 
-/* ChartResumo */
+/* GraficoResumo */
 
 .chart-container {
   display: flex;
@@ -202,7 +202,7 @@ ion-item.selected {
   }
 }
 
-/* ChartCategoria */
+/* GraficoCategorias */
 
 .chart-container {
   width: 100%;

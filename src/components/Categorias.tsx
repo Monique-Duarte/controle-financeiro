@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import CategoriaItem from './CategoriaItem';
-import { categoriasPredefinidas, Categoria } from './categoriasPredefinidas';
+import { categoriasPredefinidas } from './categoriasPredefinidas';
 import '../App.css';
 import { adicionarDespesa } from '../services/firebaseFunctions';
 import { getCategoriaPorId } from '../utils/utilsCategorias';
+import { CategoriaUI } from '../types/tipos';
 
 interface CategoriasProps {
-  categorias?: Categoria[];
+  categorias?: CategoriaUI[];
   valoresPorCategoriaInicial?: Record<string, number[]>;
   onValoresChange?: (valores: Record<string, number[]>) => void;
   modoEdicao?: boolean;

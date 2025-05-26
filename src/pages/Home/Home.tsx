@@ -16,7 +16,7 @@ import {
 } from '@ionic/react';
 
 import ResumoContainer from '../../components/GraficoResumo/ResumoContainer';
-import CategoriasContainer from '../../components/GrafcoCategorias/CategoriasContainer';
+import CategoriasContainer from '../../components/GraficoCategorias/CategoriasContainer';
 
 const Home: React.FC = () => {
   return (

@@ -36,7 +36,7 @@ const renderActiveShape = (props: any) => {
   );
 };
 
-const ChartResumo: React.FC<ChartResumoProps> = ({
+const GraficoResumo: React.FC<ChartResumoProps> = ({
   receitas = [],
   valoresPorCategoria = {},
 }) => {
@@ -147,4 +147,4 @@ const ChartResumo: React.FC<ChartResumoProps> = ({
   );
 };
 
-export default ChartResumo;
+export default GraficoResumo;

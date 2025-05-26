@@ -1,4 +1,4 @@
-import { DespesaTipo } from '../pages/Despesa/Despesa';
+import { DespesaTipo } from '../types/tipos';
 
 export function agruparValoresPorCategoria(despesas: DespesaTipo[]): Record<string, number[]> {
   const agrupado: Record<string, number[]> = {};
