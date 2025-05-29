@@ -3,9 +3,10 @@ import { PieChart, Pie, Cell, Sector, ResponsiveContainer } from 'recharts';
 import { DespesaTipo } from '../../types/tipos';
 import { categoriasPredefinidas } from '../categoriasPredefinidas';
 import { somarValoresPorCategoria } from '../../utils/somaPorCategorias';
+import '../../styles/Graficos.css';
 
 interface Props {
-  despesas: DespesaTipo[];  // espera o array de despesas
+  despesas: DespesaTipo[];  
 }
 
 const renderActiveShape = (props: any) => {
@@ -30,7 +31,6 @@ const renderActiveShape = (props: any) => {
     </g>
   );
 };
-
 
 const GraficoCategorias: React.FC<Props> = ({ despesas }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -57,9 +57,8 @@ const GraficoCategorias: React.FC<Props> = ({ despesas }) => {
 
   return (
     <div className="chart-container" style={{ position: 'relative' }}>
-      {/* Aqui o título com valor total */}
       <h2 className="chart-title" style={{ marginBottom: 16 }}>
-        Total de Despesas:{' '}
+        Despesas: {' '}
         <strong style={{ color: '#d9534f', fontSize: '1.4rem' }}>
           R$ {total.toFixed(2)}
         </strong>
@@ -132,4 +131,3 @@ const GraficoCategorias: React.FC<Props> = ({ despesas }) => {
 };
 
 export default GraficoCategorias;
-

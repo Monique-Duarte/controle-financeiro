@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useFinanceStore } from '../../stores/financeStore';
-import GraficoResumo from './GraficoResumo';
+import { useFinanceStore } from '../store/useFinanceStore';
+import GraficoResumo from './Graficos/GraficoResumo';
 
 const ResumoContainer: React.FC = () => {
   const receitas = useFinanceStore(state => state.receitas);

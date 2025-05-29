@@ -10,7 +10,7 @@ import {
   IonNote,
 } from '@ionic/react';
 
-import '../App.css';
+import '../styles/Menu.css';
 
 import { useLocation } from 'react-router-dom';
 import { 
@@ -56,8 +56,8 @@ const appPages: AppPage[] = [
     mdIcon: createSharp
   },
   {
-    title: 'Faturas',
-    url: '/Faturas',
+    title: 'Fatura',
+    url: '/Fatura',
     iosIcon: archiveOutline,
     mdIcon: archiveSharp
   },

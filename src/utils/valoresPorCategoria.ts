@@ -1,17 +1,17 @@
-import { DespesaTipo } from '../types/tipos';
+import { DespesaTipo } from "../types/tipos";
 
 export function agruparValoresPorCategoria(despesas: DespesaTipo[]): Record<string, number[]> {
   const agrupado: Record<string, number[]> = {};
 
   despesas.forEach(despesa => {
-    const idCategoria = despesa.categoria?.id;
-    const valor = parseFloat(despesa.valor);
+    const nomeCategoria = despesa.categoria?.nome; // usa nome ao invés de id
+    const valor = Number(despesa.valor);
 
-    if (idCategoria && !isNaN(valor)) {
-      if (!agrupado[idCategoria]) {
-        agrupado[idCategoria] = [];
+    if (nomeCategoria && !isNaN(valor)) {
+      if (!agrupado[nomeCategoria]) {
+        agrupado[nomeCategoria] = [];
       }
-      agrupado[idCategoria].push(valor);
+      agrupado[nomeCategoria].push(valor);
     }
   });
 

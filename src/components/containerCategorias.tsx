@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { db } from '../../services/firebase';
+import { db } from '../services/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
-import GraficoCategorias from '../GraficoCategorias/GraficoCategorias';
-import { DespesaFirestore } from '../../types/tipos';
+import GraficoCategorias from './Graficos/GraficoCategorias';
+import { DespesaFirestore } from '../types/tipos';
 
 const CategoriasContainer: React.FC = () => {
   const [despesas, setDespesas] = useState<DespesaFirestore[]>([]);

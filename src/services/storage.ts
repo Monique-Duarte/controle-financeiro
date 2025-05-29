@@ -7,7 +7,15 @@ export const setData = async (key: string, value: unknown) => {
   });
 };
 
-export const getData = async (key: string) => {
+export const getData = async <T = unknown>(key: string): Promise<T | null> => {
   const result = await Preferences.get({ key });
-  return result.value ? JSON.parse(result.value) : null;
+  return result.value ? (JSON.parse(result.value) as T) : null;
+};
+
+export const removeData = async (key: string) => {
+  await Preferences.remove({ key });
+};
+
+export const clearAllData = async () => {
+  await Preferences.clear();
 };

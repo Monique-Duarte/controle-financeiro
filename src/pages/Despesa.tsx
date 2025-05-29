@@ -14,14 +14,17 @@ import {
   IonToolbar,
   IonMenuButton,
 } from '@ionic/react';
-import { chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
-import { collection, query, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { categoriasPredefinidas } from '../../components/categoriasPredefinidas';
-import { db } from '../../services/firebase';
-import { DespesaTipo } from '../../types/tipos';
-import DespesasForm from './DespesasForm';
+import { chevronDownOutline, chevronUpOutline, createOutline, trashOutline } from 'ionicons/icons';
+import { query, orderBy, getDocs } from 'firebase/firestore';
+import { categoriasPredefinidas } from '../components/categoriasPredefinidas';
+import { DespesaTipo } from '../types/tipos';
+import DespesasForm from '../components/Formularios/DespesasForm';
 
-const despesasRef = collection(db, 'financas', 'global', 'despesas');
+import '../styles/btn.css';
+import '../App.css';
+import { deleteDespesa } from '../services/financeService';
+import { getCollectionRef } from '../services/crud-service';
+
 
 const DespesasPage: React.FC = () => {
   const [despesas, setDespesas] = useState<DespesaTipo[]>([]);
@@ -34,7 +37,7 @@ const DespesasPage: React.FC = () => {
   const carregarDespesas = async () => {
     setCarregando(true);
     try {
-      const q = query(despesasRef, orderBy('data', 'desc'));
+      const q = query(getCollectionRef('despesas'), orderBy('data', 'desc'));
       const snapshot = await getDocs(q);
       const lista: DespesaTipo[] = snapshot.docs.map(docSnap => {
         const dados = docSnap.data();
@@ -46,6 +49,7 @@ const DespesasPage: React.FC = () => {
           parcelas: dados.parcelas,
           fixa: dados.fixa,
           categoria: categoriasPredefinidas.find(c => c.id === dados.categoria) || categoriasPredefinidas[0],
+          tipoPagamento: dados.tipoPagamento || 'crédito', // <-- ADICIONADO
         };
       });
       setDespesas(lista);
@@ -56,10 +60,10 @@ const DespesasPage: React.FC = () => {
     setCarregando(false);
   };
 
+
   const removerDespesa = async (id: string) => {
     try {
-      const docRef = doc(db, 'financas', 'global', 'despesas', id);
-      await deleteDoc(docRef);
+      await deleteDespesa(id);
       await carregarDespesas();
       setToastMsg('Despesa excluída com sucesso!');
     } catch (error) {
@@ -79,7 +83,7 @@ const DespesasPage: React.FC = () => {
           <IonButtons slot="start">
             <IonMenuButton />
           </IonButtons>
-          <IonTitle>Despesas</IonTitle>
+          <IonTitle className='titulo' >Despesas</IonTitle>
           <IonButtons slot="end">
             <IonButton onClick={() => {
               setMostrarFormulario(!mostrarFormulario);
@@ -104,7 +108,6 @@ const DespesasPage: React.FC = () => {
             }}
           />
         )}
-
         <IonList>
           {despesas.map((item, index) => (
             <IonItem
@@ -112,32 +115,50 @@ const DespesasPage: React.FC = () => {
               button
               onClick={() => setItemExpandido(itemExpandido === index ? null : index)}
               detail={false}
+              className="despesa-item"
             >
-              <IonLabel>
-                <h3>{item.descricao}</h3>
-                <p>{new Date(item.data).toLocaleDateString('pt-BR')} - R$ {item.valor.toFixed(2)}</p>
-                <p>{item.categoria.nome}</p>
-                {itemExpandido === index && (
-                  <>
-                    <p>Parcelas: {item.parcelas}</p>
-                    <p>Fixa: {item.fixa ? 'Sim' : 'Não'}</p>
-                    <IonButtons>
-                      <IonButton onClick={e => {
+              <IonLabel className="despesa-label">
+                <div className="linha"><strong>{item.descricao}</strong></div>
+                <div className="linha linha-infos">
+                  <div>
+                    {new Date(item.data).toLocaleDateString('pt-BR')} - R$ {item.valor.toFixed(2)}
+                    <div className="despesa-categoria">
+                      {item.categoria.icone}
+                      <span className='span-icon'>{item.categoria.nome}</span>
+                    </div>
+                  </div>
+
+                  <div className="acoes">
+                    <IonIcon
+                      icon={createOutline}
+                      className="icone-edit"
+                      onClick={e => {
                         e.stopPropagation();
                         setDespesaEditando(item);
                         setMostrarFormulario(true);
-                      }}>
-                        Editar
-                      </IonButton>
-                      <IonButton color="danger" onClick={e => {
+                      }}
+                    />
+                    <IonIcon
+                      icon={trashOutline}
+                      className="icone-delete"
+                      onClick={e => {
                         e.stopPropagation();
                         if (item.id) removerDespesa(item.id);
-                      }}>
-                        Excluir
-                      </IonButton>
-                    </IonButtons>
-                  </>
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {itemExpandido === index && (
+                  <div className="despesa-detalhes">
+                    <div className="linha">
+                      <strong>Cartão:</strong> {item.cartao && item.cartao.trim() !== '' ? item.cartao : 'Nenhum cartão selecionado'}
+                    </div>
+                    <div className="linha"><strong>Parcelas:</strong> {item.parcelas}</div>
+                    <div className="linha"><strong>Fixa:</strong> {item.fixa ? 'Sim' : 'Não'}</div>
+                  </div>
                 )}
+
               </IonLabel>
               <IonIcon
                 slot="end"

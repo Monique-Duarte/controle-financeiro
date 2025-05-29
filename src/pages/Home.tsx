@@ -14,9 +14,9 @@ import {
   IonButtons,
   IonMenuButton
 } from '@ionic/react';
+import ResumoContainer from '../components/containerResumo';
+import CategoriasContainer from '../components/containerCategorias';
 
-import ResumoContainer from '../../components/GraficoResumo/ResumoContainer';
-import CategoriasContainer from '../../components/GraficoCategorias/CategoriasContainer';
 
 const Home: React.FC = () => {
   return (
@@ -38,7 +38,7 @@ const Home: React.FC = () => {
             <IonCol size="12" sizeMd="6">
               <IonCard>
                 <IonCardHeader>
-                  <IonCardTitle>Resumo Financeiro</IonCardTitle>
+                  <IonCardTitle className='titulo'>Resumo Financeiro</IonCardTitle>
                 </IonCardHeader>
                 <ResumoContainer />
               </IonCard>
@@ -47,7 +47,7 @@ const Home: React.FC = () => {
             <IonCol size="12" sizeMd="6">
               <IonCard>
                 <IonCardHeader>
-                  <IonCardTitle>Gastos por Categoria</IonCardTitle>
+                  <IonCardTitle className='titulo'>Gastos por Categoria</IonCardTitle>
                 </IonCardHeader>
                 <CategoriasContainer />
               </IonCard>

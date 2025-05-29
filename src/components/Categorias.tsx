@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import CategoriaItem from './CategoriaItem';
 import { categoriasPredefinidas } from './categoriasPredefinidas';
 import '../App.css';
-import { adicionarDespesa } from '../services/firebaseFunctions';
+import { adicionarDespesa } from '../services/crud-service';
 import { getCategoriaPorId } from '../utils/utilsCategorias';
 import { CategoriaUI } from '../types/tipos';
 
