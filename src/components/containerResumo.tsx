@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useFinanceStore } from '../store/useFinanceStore';
+import { useFinanceStore } from '../hook/useFinanceStore';
 import GraficoResumo from './Graficos/GraficoResumo';
 
 const ResumoContainer: React.FC = () => {

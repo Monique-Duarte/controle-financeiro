@@ -59,6 +59,10 @@ export interface DespesaTipo {
     parcelaAtual?: number;
 }
 
+export type DespesaFirestoreToSave = Omit<DespesaTipo, 'id' | 'categoria'> & {
+  categoria: CategoriaFirestore; // sem ícone
+};
+
 // src/types/configuracaoFatura.ts
 
 export interface ConfiguracaoFatura {
@@ -74,7 +78,7 @@ export interface FinanceState {
   salvarConfiguracoesFatura: (config: ConfiguracaoFatura[]) => Promise<void>;
 }
 
-export interface CartaoConfiguracao {
+export interface Cartao {
   id: string;
   nomeCartao: string;
   fechamentoFatura: number;
@@ -88,3 +92,11 @@ export interface ReceitaTipo {
   valor: number;
   fixa: boolean;
 }
+
+export type FaturaExportada = {
+  nome: string;
+  data: string;
+  parcela: string;
+  valor: string;
+  descricao?: string;
+};

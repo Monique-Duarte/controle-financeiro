@@ -6,7 +6,6 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   Cell,
 } from 'recharts';
 import '../../styles/Graficos.css';
@@ -54,8 +53,6 @@ const GraficoResumo: React.FC<GraficoResumoProps> = ({
 
   return (
     <div className="chart-container" style={{ position: 'relative' }}>
-      <h2 className="chart-title">Resumo Financeiro</h2>
-
       <div
         className={`saldo-text-container ${
           saldo >= 0 ? 'positivo' : 'negativo'

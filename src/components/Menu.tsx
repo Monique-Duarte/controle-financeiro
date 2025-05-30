@@ -23,6 +23,8 @@ import {
   cashSharp, 
   createOutline, 
   createSharp, 
+  scaleOutline, 
+  scaleSharp, 
   statsChartOutline, 
   statsChartSharp, 
   warningOutline, 
@@ -44,6 +46,12 @@ const appPages: AppPage[] = [
     mdIcon: barChartSharp
   },
   {
+    title: 'Extrato',
+    url: '/Extrato',
+    iosIcon: scaleOutline,
+    mdIcon: scaleSharp
+  },
+  {
     title: 'Receita',
     url: '/Receita',
     iosIcon: cashOutline,
@@ -62,7 +70,7 @@ const appPages: AppPage[] = [
     mdIcon: archiveSharp
   },
   {
-    title: 'Cartões de crédito',
+    title: 'Cartões',
     url: '/Cartoes',
     iosIcon: cardOutline,
     mdIcon: cardSharp

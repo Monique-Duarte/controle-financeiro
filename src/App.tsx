@@ -12,9 +12,8 @@ import Home from './pages/Home';
 import ReceitaPage from './pages/Receita';
 import Despesa from './pages/Despesa';
 import Fatura from './pages/Fatura';
+import  CartaoPage  from './pages/Cartoes';
 
-
-/* Ionic Core & Optional CSS */
 import '@ionic/react/css/core.css';
 import '@ionic/react/css/normalize.css';
 import '@ionic/react/css/structure.css';
@@ -47,6 +46,7 @@ const App: React.FC = () => {
             <Route path="/Receita" exact component={ReceitaPage} />
             <Route path="/Despesa" exact component={Despesa} />
             <Route path="/Fatura" exact component={Fatura} />
+            <Route path="/Cartoes" exact component={CartaoPage} />
             {/* Se quiser outras rotas, só adicionar aqui */}
           </IonRouterOutlet>
         </IonSplitPane>

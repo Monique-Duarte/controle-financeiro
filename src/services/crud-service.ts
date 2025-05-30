@@ -6,24 +6,32 @@ import {
   deleteDoc,
   doc,
   getDocs,
-  CollectionReference
+  CollectionReference,
+  DocumentData
 } from 'firebase/firestore';
 
-export type TipoDoc = 'receitas' | 'despesas';
+
+export type TipoDoc = 'receitas' | 'despesas' | 'cartoes';
 
 export interface BaseDoc {
   id?: string;
 }
 
-export const getCollectionRef = (tipo: TipoDoc): CollectionReference => {
+// Cria uma referência para a subcoleção "financas/global/{tipo}"
+export const getCollectionRef = (tipo: TipoDoc): CollectionReference<DocumentData> => {
   return collection(db, 'financas', 'global', tipo);
 };
 
+// Busca todos os documentos da coleção e adiciona o id de cada um
 export const getDocsByTipo = async <T extends BaseDoc>(tipo: TipoDoc): Promise<T[]> => {
   const snapshot = await getDocs(getCollectionRef(tipo));
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+  return snapshot.docs.map((docSnap) => {
+    const data = docSnap.data();
+    return { id: docSnap.id, ...data } as T;
+  });
 };
 
+// Adiciona um novo documento à coleção e retorna com o id gerado
 export const addDocByTipo = async <T extends BaseDoc>(
   tipo: TipoDoc,
   data: Omit<T, 'id'>
@@ -32,6 +40,7 @@ export const addDocByTipo = async <T extends BaseDoc>(
   return { id: docRef.id, ...data } as T;
 };
 
+// Atualiza um documento existente, ignorando o campo "id" para não sobrescrever acidentalmente
 export const updateDocByTipo = async <T extends BaseDoc>(
   tipo: TipoDoc,
   id: string,
@@ -41,6 +50,7 @@ export const updateDocByTipo = async <T extends BaseDoc>(
   await updateDoc(ref, data);
 };
 
+// Remove um documento pelo id
 export const deleteDocByTipo = async (tipo: TipoDoc, id: string): Promise<void> => {
   const ref = doc(db, 'financas', 'global', tipo, id);
   await deleteDoc(ref);

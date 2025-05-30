@@ -1,4 +1,4 @@
-import { DespesaTipo, CartaoConfiguracao } from '../types/tipos';
+import { DespesaTipo, Cartao } from '../types/tipos';
 import { parseISO, isWithinInterval } from 'date-fns';
 
 /**
@@ -7,7 +7,7 @@ import { parseISO, isWithinInterval } from 'date-fns';
 function estaDentroDoCicloDeFatura(
   dataDespesaStr: string,
   dataReferenciaStr: string,
-  config: CartaoConfiguracao
+  config: Cartao
 ): boolean {
   const dataDespesa = parseISO(dataDespesaStr);
   const dataReferencia = parseISO(dataReferenciaStr);
@@ -26,7 +26,7 @@ function estaDentroDoCicloDeFatura(
  */
 export function filtrarDespesasPorCartoes(
   despesas: DespesaTipo[],
-  configuracoes: CartaoConfiguracao[],
+  configuracoes: Cartao[],
   dataAtual: string
 ): {
   despesasPorCartao: Record<string, DespesaTipo[]>;

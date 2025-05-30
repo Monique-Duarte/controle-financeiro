@@ -35,11 +35,4 @@ export const categoriasPredefinidas: CategoriaUI[] = [
   { id: 'Outros', nome: 'Outros', cor: coresCategorias[11], icone: <FaEllipsisH /> },
 ];
 
-// 🔁 Objeto para acesso rápido por nome
-export const categoriasPorNome: Record<string, CategoriaUI> = categoriasPredefinidas.reduce(
-  (acc, cat) => {
-    acc[cat.nome] = cat;
-    return acc;
-  },
-  {} as Record<string, CategoriaUI>
-);
+

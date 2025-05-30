@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonMenuButton, IonButton,
   IonContent, IonList, IonItem, IonLabel, IonToast,
-  IonIcon
+  IonIcon, IonAlert
 } from '@ionic/react';
 import { createOutline, trashOutline } from 'ionicons/icons';
 import { doc, addDoc, updateDoc, deleteDoc, getDocs } from 'firebase/firestore';
@@ -18,6 +18,9 @@ const ReceitaPage: React.FC = () => {
   const [receitaEditando, setReceitaEditando] = useState<ReceitaTipo | null>(null);
   const [toastMsg, setToastMsg] = useState('');
   const [itemExpandido, setItemExpandido] = useState<string | null>(null);
+
+  // Estado para controlar qual receita está pedindo confirmação para exclusão
+  const [alertaExcluirId, setAlertaExcluirId] = useState<string | null>(null);
 
   const receitasRef = getCollectionRef('receitas');
 
@@ -65,7 +68,6 @@ const ReceitaPage: React.FC = () => {
         await addDoc(receitasRef, receitaCorrigida);
         setToastMsg('Receita adicionada!');
       }
-
       await carregarReceitas();
     } catch (error) {
       console.error('Erro ao salvar receita:', error);
@@ -82,6 +84,13 @@ const ReceitaPage: React.FC = () => {
     setMostrarFormulario(true);
   };
 
+  // Agora só marca para excluir, abre alerta
+  const pedirConfirmacaoExcluir = (id?: string) => {
+    if (!id) return;
+    setAlertaExcluirId(id);
+  };
+
+  // Executa a exclusão confirmada
   const removerReceita = async (id?: string) => {
     if (!id) return;
     try {
@@ -93,6 +102,7 @@ const ReceitaPage: React.FC = () => {
       setToastMsg('Erro ao excluir receita.');
     }
     if (itemExpandido === id) setItemExpandido(null);
+    setAlertaExcluirId(null);
   };
 
   return (
@@ -102,7 +112,7 @@ const ReceitaPage: React.FC = () => {
           <IonButtons slot="start">
             <IonMenuButton />
           </IonButtons>
-          <IonTitle className='titulo' >Receitas</IonTitle>
+          <IonTitle className='titulo'>Receitas</IonTitle>
           <IonButtons slot="end">
             <IonButton
               onClick={() => {
@@ -159,7 +169,7 @@ const ReceitaPage: React.FC = () => {
                       className="icone-delete"
                       onClick={e => {
                         e.stopPropagation();
-                        removerReceita(r.id);
+                        pedirConfirmacaoExcluir(r.id);
                       }}
                     />
                   </div>
@@ -179,6 +189,25 @@ const ReceitaPage: React.FC = () => {
           message={toastMsg}
           duration={2000}
           onDidDismiss={() => setToastMsg('')}
+        />
+
+        <IonAlert
+          isOpen={alertaExcluirId !== null}
+          header="Confirmar exclusão"
+          message="Tem certeza que deseja excluir esta receita?"
+          buttons={[
+            {
+              text: 'Cancelar',
+              role: 'cancel',
+              handler: () => setAlertaExcluirId(null),
+            },
+            {
+              text: 'Excluir',
+              role: 'destructive',
+              handler: () => removerReceita(alertaExcluirId!),
+            },
+          ]}
+          onDidDismiss={() => setAlertaExcluirId(null)}
         />
       </IonContent>
     </IonPage>

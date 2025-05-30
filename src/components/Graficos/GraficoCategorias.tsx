@@ -57,12 +57,10 @@ const GraficoCategorias: React.FC<Props> = ({ despesas }) => {
 
   return (
     <div className="chart-container" style={{ position: 'relative' }}>
-      <h2 className="chart-title" style={{ marginBottom: 16 }}>
-        Despesas: {' '}
-        <strong style={{ color: '#d9534f', fontSize: '1.4rem' }}>
-          R$ {total.toFixed(2)}
-        </strong>
-      </h2>
+        <div
+        className="despesa-text-container">
+        Despesas: R$ {total.toFixed(2)}
+      </div>
 
       <ResponsiveContainer width="100%" aspect={1}>
         <PieChart>

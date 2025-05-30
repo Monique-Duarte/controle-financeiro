@@ -6,20 +6,17 @@ import {
   IonLabel,
   IonSelect,
   IonSelectOption,
-  IonToggle,
+  IonToggle
 } from '@ionic/react';
-import { addDoc, doc, updateDoc, collection } from 'firebase/firestore';
-import { db } from '../../services/firebase';
 import { categoriasPredefinidas } from '../../components/categoriasPredefinidas';
-import { DespesaTipo, ConfiguracaoFatura } from '../../types/tipos';
-import { useFinanceStore } from '../../store/useFinanceStore';
+import { DespesaTipo, CategoriaUI, DespesaFirestoreToSave } from '../../types/tipos';
+import { useCartaoStore } from '../../hook/useCartaoStore';
+import { addDocByTipo, updateDocByTipo } from '../../services/crud-service';
 
 interface Props {
   despesaEditando: DespesaTipo | null;
   onSalvo: () => void;
 }
-
-const despesasRef = collection(doc(db, 'financas', 'global'), 'despesas');
 
 const DespesasForm: React.FC<Props> = ({ despesaEditando, onSalvo }) => {
   const [descricao, setDescricao] = useState('');
@@ -27,12 +24,15 @@ const DespesasForm: React.FC<Props> = ({ despesaEditando, onSalvo }) => {
   const [data, setData] = useState('');
   const [parcelas, setParcelas] = useState(1);
   const [fixa, setFixa] = useState(false);
-  const [categoria, setCategoria] = useState(categoriasPredefinidas[0].id);
-
+  const [categoriaId, setCategoriaId] = useState(categoriasPredefinidas[0].id);
   const [tipoPagamento, setTipoPagamento] = useState<'debito' | 'credito'>('debito');
   const [cartao, setCartao] = useState('');
 
-  const { configuracoesFatura } = useFinanceStore();
+  const { cartoes, carregarCartoes } = useCartaoStore();
+
+  useEffect(() => {
+    carregarCartoes();
+  }, []);
 
   useEffect(() => {
     if (despesaEditando) {
@@ -41,7 +41,7 @@ const DespesasForm: React.FC<Props> = ({ despesaEditando, onSalvo }) => {
       setData(despesaEditando.data);
       setParcelas(despesaEditando.parcelas);
       setFixa(despesaEditando.fixa);
-      setCategoria(despesaEditando.categoria.id);
+      setCategoriaId(despesaEditando.categoria.id);
       setTipoPagamento(despesaEditando.tipoPagamento || 'debito');
       setCartao(despesaEditando.cartao || '');
     } else {
@@ -50,7 +50,7 @@ const DespesasForm: React.FC<Props> = ({ despesaEditando, onSalvo }) => {
       setData(new Date().toISOString().split('T')[0]);
       setParcelas(1);
       setFixa(false);
-      setCategoria(categoriasPredefinidas[0].id);
+      setCategoriaId(categoriasPredefinidas[0].id);
       setTipoPagamento('debito');
       setCartao('');
     }
@@ -63,34 +63,46 @@ const DespesasForm: React.FC<Props> = ({ despesaEditando, onSalvo }) => {
     return isNaN(numero) ? 0 : numero;
   };
 
-  const salvarDespesa = async () => {
-    const valorConvertido = limparValor(valor);
-    if (!descricao.trim() || valorConvertido <= 0) return;
-
-    const descricaoCapitalizada = descricao.trim().charAt(0).toUpperCase() + descricao.trim().slice(1);
-
-    const dados = {
-      descricao: descricaoCapitalizada,
-      valor: valorConvertido,
-      data,
-      parcelas,
-      fixa,
-      categoria,
-      tipoPagamento,
-      ...(tipoPagamento === 'credito' && cartao ? { cartao } : {}),
-    };
-
-    try {
-      if (despesaEditando?.id) {
-        await updateDoc(doc(despesasRef, despesaEditando.id), dados);
-      } else {
-        await addDoc(despesasRef, dados);
-      }
-      onSalvo();
-    } catch (error) {
-      console.error('Erro ao salvar despesa:', error);
-    }
+  // Função para remover o campo icone da categoria antes de salvar
+  const categoriaUiParaFirestore = (categoriaUi: CategoriaUI) => {
+    const { icone, ...categoriaFirestore } = categoriaUi;
+    return categoriaFirestore;
   };
+
+  const salvarDespesa = async () => {
+  const valorConvertido = limparValor(valor);
+  if (!descricao.trim() || valorConvertido <= 0) return;
+
+  const categoriaSelecionada: CategoriaUI | undefined = categoriasPredefinidas.find(
+    (c) => c.id === categoriaId
+  );
+  if (!categoriaSelecionada) return;
+
+  // Remove a propriedade 'icone' para salvar no Firestore
+  const { icone, ...categoriaParaFirestore } = categoriaSelecionada;
+
+  const dados: DespesaFirestoreToSave = {
+    descricao: descricao.trim(),
+    valor: valorConvertido,
+    data,
+    parcelas,
+    fixa,
+    categoria: categoriaParaFirestore, // <-- categoria correta sem ícone
+    tipoPagamento,
+    ...(tipoPagamento === 'credito' && cartao ? { cartao } : {}),
+  };
+
+  try {
+    if (despesaEditando?.id) {
+      await updateDocByTipo('despesas', despesaEditando.id, dados);
+    } else {
+      await addDocByTipo('despesas', dados);
+    }
+    onSalvo();
+  } catch (error) {
+    console.error('Erro ao salvar despesa:', error);
+  }
+};
 
   return (
     <form onSubmit={(e) => e.preventDefault()}>
@@ -98,11 +110,7 @@ const DespesasForm: React.FC<Props> = ({ despesaEditando, onSalvo }) => {
         <IonLabel position="stacked">Descrição</IonLabel>
         <IonInput
           value={descricao}
-          onIonChange={(e) => {
-            const val = e.detail.value || '';
-            const valCapitalized = val.charAt(0).toUpperCase() + val.slice(1);
-            setDescricao(valCapitalized);
-          }}
+          onIonChange={(e) => setDescricao(e.detail.value || '')}
           required
         />
       </IonItem>
@@ -130,7 +138,7 @@ const DespesasForm: React.FC<Props> = ({ despesaEditando, onSalvo }) => {
 
       <IonItem>
         <IonLabel position="stacked">Categoria</IonLabel>
-        <IonSelect value={categoria} onIonChange={(e) => setCategoria(e.detail.value)}>
+        <IonSelect value={categoriaId} onIonChange={(e) => setCategoriaId(e.detail.value)}>
           {categoriasPredefinidas.map((cat) => (
             <IonSelectOption key={cat.id} value={cat.id}>
               {cat.nome}
@@ -145,6 +153,7 @@ const DespesasForm: React.FC<Props> = ({ despesaEditando, onSalvo }) => {
           type="number"
           value={parcelas}
           onIonChange={(e) => setParcelas(parseInt(e.detail.value || '1', 10))}
+          min={1}
         />
       </IonItem>
 
@@ -174,10 +183,10 @@ const DespesasForm: React.FC<Props> = ({ despesaEditando, onSalvo }) => {
           <IonSelect
             value={cartao}
             onIonChange={(e) => setCartao(e.detail.value)}
-            placeholder="Nenhum cartão"
+            placeholder="Escolha um cartão"
           >
             <IonSelectOption value="">Nenhum cartão</IonSelectOption>
-            {configuracoesFatura.map((c: ConfiguracaoFatura) => (
+            {cartoes.map((c) => (
               <IonSelectOption key={c.id} value={c.nomeCartao}>
                 {c.nomeCartao}
               </IonSelectOption>

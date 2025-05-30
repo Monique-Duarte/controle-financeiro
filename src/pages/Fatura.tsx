@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   IonPage,
   IonContent,
@@ -10,36 +10,63 @@ import {
   IonItem,
   IonLabel,
   IonText,
+  IonInput,
   IonGrid,
   IonRow,
   IonCol,
+  IonButton,
+  IonIcon,
 } from '@ionic/react';
-
+import { downloadOutline } from 'ionicons/icons';
 import '../styles/Fatura.css';
-import { useFinanceStore } from '../store/useFinanceStore';
 
-// 👇 Função para calcular qual parcela estamos
-function calcularParcelaAtual(dataInicial: string, totalParcelas: number): string {
-  const dataInicio = new Date(dataInicial);
-  const hoje = new Date();
-
-  const anoDiff = hoje.getFullYear() - dataInicio.getFullYear();
-  const mesDiff = hoje.getMonth() - dataInicio.getMonth();
-  const mesesPassados = anoDiff * 12 + mesDiff;
-
-  const parcelaAtual = Math.min(mesesPassados + 1, totalParcelas);
-  return `${parcelaAtual}/${totalParcelas}`;
-}
+import { useFinanceStore } from '../hook/useFinanceStore';
+import { useExportador } from '../hook/useExportador';
+import { useParcelasMensais } from '../hook/useParcelasMensais';
+import { FaturaExportada } from '../types/tipos';
 
 const FaturaPage: React.FC = () => {
   const { despesas, iniciarEscuta } = useFinanceStore();
+
+  const [mesAnoSelecionado, setMesAnoSelecionado] = useState<string>(() => {
+    const hoje = new Date();
+    return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  const [linhaAberta, setLinhaAberta] = useState<number | null>(null);
 
   useEffect(() => {
     const unsubscribe = iniciarEscuta();
     return () => unsubscribe();
   }, []);
 
-  const total = despesas.reduce((acc, d) => acc + d.valor, 0);
+  const despesasFiltradas = useParcelasMensais(
+    despesas.filter((d) => d.tipoPagamento === 'credito'),
+    mesAnoSelecionado
+  );
+
+
+  const total = despesasFiltradas.reduce((acc, d) => {
+    const valorParcela = d.parcelas > 1 ? d.valor / d.parcelas : d.valor;
+    return acc + valorParcela;
+  }, 0);
+
+  const dadosParaExportar: FaturaExportada[] = despesasFiltradas.map((d) => {
+    const nome = d.cartao || 'Não Cadastrado';
+    const data = new Date(d.dataParcela).toLocaleDateString('pt-BR');
+    const parcela =
+      d.parcelas > 1 ? `${d.numeroParcela}/${d.parcelas}` : '-';
+    const valor = `R$ ${(
+      d.parcelas > 1 ? d.valor / d.parcelas : d.valor
+    ).toFixed(2)}`;
+    const descricao = d.descricao || d.categoria?.nome || '';
+    return { nome, data, parcela, valor, descricao };
+  });
+
+  const { exportarPDF, exportarExcel } = useExportador(
+    dadosParaExportar,
+    `fatura-${mesAnoSelecionado}`
+  );
 
   return (
     <IonPage>
@@ -48,11 +75,40 @@ const FaturaPage: React.FC = () => {
           <IonButtons slot="start">
             <IonMenuButton />
           </IonButtons>
-          <IonTitle>Fatura (Todas Despesas)</IonTitle>
+          <IonTitle>Fatura</IonTitle>
         </IonToolbar>
       </IonHeader>
 
       <IonContent className="ion-padding">
+        <IonItem lines="none" className="ion-margin-bottom">
+          <IonLabel position="stacked">Filtrar por mês:</IonLabel>
+          <IonInput
+            type="month"
+            value={mesAnoSelecionado}
+            onIonChange={(e) => {
+              if (e.detail.value) {
+                setMesAnoSelecionado(e.detail.value);
+              }
+            }}
+          />
+        </IonItem>
+
+        {/* Botões de exportação */}
+        <IonRow className="ion-justify-content-start ion-margin-top">
+          <IonCol size="auto">
+            <IonButton fill="outline" size="small" onClick={exportarPDF}>
+              <IonIcon icon={downloadOutline} slot="start" />
+              PDF
+            </IonButton>
+          </IonCol>
+          <IonCol size="auto">
+            <IonButton fill="outline" size="small" onClick={exportarExcel}>
+              <IonIcon icon={downloadOutline} slot="start" />
+              Excel
+            </IonButton>
+          </IonCol>
+        </IonRow>
+
         <IonItem lines="none" className="ion-margin-bottom">
           <IonLabel>Total de Despesas:</IonLabel>
           <IonText className="total-fatura">
@@ -62,31 +118,46 @@ const FaturaPage: React.FC = () => {
 
         <IonGrid className="fatura-grid">
           <IonRow className="fatura-header-row ion-text-center">
-            <IonCol>Nome</IonCol>
+            <IonCol>Cartão</IonCol>
             <IonCol>Data</IonCol>
             <IonCol>Parcela</IonCol>
             <IonCol>Valor</IonCol>
           </IonRow>
 
-          {despesas.map((d, index) => {
-            const nome = d.cartao || d.categoria.nome;
-            const dataFormatada = new Date(d.data).toLocaleDateString('pt-BR');
+          {despesasFiltradas.map((d, index) => {
+            const nome = d.cartao || 'Não Informado';
+            const dataFormatada = new Date(d.dataParcela).toLocaleDateString('pt-BR', {
+              day: '2-digit',
+              month: '2-digit',
+            });
 
             const textoParcela =
-              d.parcelas > 1
-                ? calcularParcelaAtual(d.data, d.parcelas)
-                : '-';
+              d.parcelas > 1 ? `${d.numeroParcela}/${d.parcelas}` : '-';
 
             const valorParcela =
               d.parcelas > 1 ? d.valor / d.parcelas : d.valor;
 
             return (
-              <IonRow key={index} className="fatura-item-row ion-text-center">
-                <IonCol>{nome}</IonCol>
-                <IonCol>{dataFormatada}</IonCol>
-                <IonCol>{textoParcela}</IonCol>
-                <IonCol>R$ {valorParcela.toFixed(2)}</IonCol>
-              </IonRow>
+              <React.Fragment key={index}>
+                <IonRow
+                  className="fatura-item-row ion-text-center clicavel"
+                  onClick={() =>
+                    setLinhaAberta(linhaAberta === index ? null : index)
+                  }
+                >
+                  <IonCol>{nome}</IonCol>
+                  <IonCol>{dataFormatada}</IonCol>
+                  <IonCol>{textoParcela}</IonCol>
+                  <IonCol>R$ {valorParcela.toFixed(2)}</IonCol>
+                </IonRow>
+                {linhaAberta === index && d.descricao && (
+                  <IonRow className="observacao-row">
+                    <IonCol size="12">
+                      <div className="observacao-texto">{d.categoria?.nome}</div>
+                    </IonCol>
+                  </IonRow>
+                )}
+              </React.Fragment>
             );
           })}
         </IonGrid>

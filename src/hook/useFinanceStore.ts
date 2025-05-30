@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { onSnapshot, doc, setDoc } from 'firebase/firestore';
-import { DespesaFirestore, DespesaTipo, CartaoConfiguracao } from '../types/tipos';
+import { DespesaFirestore, DespesaTipo, Cartao } from '../types/tipos';
 import { categoriasPredefinidas } from '../components/categoriasPredefinidas';
 import { db } from '../services/firebase';
 import { getCollectionRef } from '../services/crud-service';
@@ -9,11 +9,11 @@ interface FinanceState {
   receitas: number[];
   valoresPorCategoria: Record<string, number[]>;
   despesas: DespesaTipo[];
-  configuracoesFatura: CartaoConfiguracao[];
+  cartoes: Cartao[];  // <-- renomeado aqui
 
   iniciarEscuta: () => () => void;
-  salvarConfiguracoesFatura: (config: CartaoConfiguracao[]) => Promise<void>;
-  setConfiguracoesFaturaLocal: (config: CartaoConfiguracao[]) => void;
+  salvarCartoes: (config: Cartao[]) => Promise<void>;  // renomeado função também para manter padrão
+  setCartoesLocal: (config: Cartao[]) => void;
 }
 
 const usuarioId = 'usuario-demo';
@@ -22,16 +22,14 @@ export const useFinanceStore = create<FinanceState>((set) => ({
   receitas: [],
   valoresPorCategoria: {},
   despesas: [],
-  configuracoesFatura: [],
+  cartoes: [],  // renomeado aqui
 
   iniciarEscuta: () => {
-    // 🔁 Referências corretas com base na estrutura /financas/global/{tipo}
     const receitasRef = getCollectionRef('receitas');
     const despesasRef = getCollectionRef('despesas');
 
     const unsubscribeReceitas = onSnapshot(receitasRef, (snapshot) => {
       const receitaValores = snapshot.docs.map(docSnap => Number(docSnap.data().valor) || 0);
-      console.log('Receitas capturadas:', receitaValores);
       set({ receitas: receitaValores });
     });
 
@@ -62,25 +60,21 @@ export const useFinanceStore = create<FinanceState>((set) => ({
         };
       });
 
-      console.log('Despesas processadas:', despesasUI);
-
       set({
         valoresPorCategoria: agrupado,
         despesas: despesasUI,
       });
     });
 
-    // Configuração de fatura
+    // Configuração de fatura (cartoes)
     const configRef = doc(db, 'userSettings', usuarioId);
     const unsubscribeConfig = onSnapshot(configRef, (snap) => {
       if (snap.exists()) {
         const data = snap.data();
-        const configuracoes: CartaoConfiguracao[] = Array.isArray(data.configuracoesFatura)
-          ? data.configuracoesFatura
-          : [];
-        set({ configuracoesFatura: configuracoes });
+        const cartoes: Cartao[] = Array.isArray(data.cartoes) ? data.cartoes : [];
+        set({ cartoes });
       } else {
-        set({ configuracoesFatura: [] });
+        set({ cartoes: [] });
       }
     });
 
@@ -91,16 +85,16 @@ export const useFinanceStore = create<FinanceState>((set) => ({
     };
   },
 
-  salvarConfiguracoesFatura: async (config) => {
+  salvarCartoes: async (config) => {
     try {
       const configRef = doc(db, 'userSettings', usuarioId);
-      await setDoc(configRef, { configuracoesFatura: config }, { merge: true });
-      set({ configuracoesFatura: config });
+      await setDoc(configRef, { cartoes: config }, { merge: true });
+      set({ cartoes: config });
     } catch (error) {
-      console.error('Erro ao salvar configurações de fatura:', error);
+      console.error('Erro ao salvar cartões:', error);
       throw error;
     }
   },
 
-  setConfiguracoesFaturaLocal: (config) => set({ configuracoesFatura: config }),
+  setCartoesLocal: (config) => set({ cartoes: config }),
 }));
