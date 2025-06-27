@@ -3,20 +3,22 @@ import React from 'react';
 export interface Receita {
   id?: string;
   descricao: string;
-  data: string; // ou Date
+  data: string;
   valor: number;
-  fixa?: boolean;
+  fixo?: boolean;
 }
 
 export interface Despesa {
   id?: string;
-  categoria: string;
+  categoria: CategoriaFirestore;
   valor: number;
   data: string;
-  observacao?: string;
-  parcela?: number;
+  descricao: string;
+  parcelas?: number;
   fixo?: boolean;
   cartao?: string;
+  tipoPagamento?: 'debito' | 'credito';
+  parcelaAtual?: number;
 }
 
 export interface CategoriaFirestore {
@@ -30,44 +32,46 @@ export interface DespesaFirestore {
   descricao: string;
   valor: number;
   parcelas: number;
-  fixa: boolean;
+  fixo: boolean;
   categoria: CategoriaFirestore;
-  tipoPagamento?: 'debito' | 'credito'; 
+  tipoPagamento?: 'debito' | 'credito';
+  observacao?: string;
+  cartao?: string;
+  parcelaAtual?: number;
 }
 
 
 export interface ReceitaFirestore {
   valor: string;
   descricao: string;
+  data: string;
+  fixo: boolean;
 }
 
 export interface CategoriaUI extends CategoriaFirestore {
   icone: React.ReactNode;
 }
 
-// NOVO tipo UI para usar na interface (com valor number e categoria com ícone)
 export interface DespesaTipo {
   id?: string;
   data: string;
   descricao: string;
   valor: number;
   parcelas: number;
-  fixa: boolean;
+  fixo: boolean;
   categoria: CategoriaUI;
-  tipoPagamento: 'debito' | 'credito'; 
-  cartao?: string; 
-    parcelaAtual?: number;
+  tipoPagamento: 'debito' | 'credito';
+  cartao?: string;
+  parcelaAtual?: number;
 }
 
 export type DespesaFirestoreToSave = Omit<DespesaTipo, 'id' | 'categoria'> & {
-  categoria: CategoriaFirestore; // sem ícone
+  categoria: CategoriaFirestore;
 };
 
-// src/types/configuracaoFatura.ts
-
 export interface ConfiguracaoFatura {
-  fechamentoFatura: number;  
-  pagamentoFatura: number;   
+  fechamentoFatura: number;
+  pagamentoFatura: number;
   id: string;
   nomeCartao: string;
 }
@@ -90,7 +94,7 @@ export interface ReceitaTipo {
   data: string;
   descricao: string;
   valor: number;
-  fixa: boolean;
+  fixo: boolean;
 }
 
 export type FaturaExportada = {

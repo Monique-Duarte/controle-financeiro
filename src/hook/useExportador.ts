@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import 'jspdf-autotable'; // importante para registrar o plugin
+import 'jspdf-autotable';
 
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';

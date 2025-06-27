@@ -11,19 +11,20 @@ import {
 import { categoriasPredefinidas } from '../../components/categoriasPredefinidas';
 import { DespesaTipo, CategoriaUI, DespesaFirestoreToSave } from '../../types/tipos';
 import { useCartaoStore } from '../../hook/useCartaoStore';
-import { addDocByTipo, updateDocByTipo } from '../../services/crud-service';
+import { addDespesa, updateDespesa } from '../../services/despesa-service';
 
 interface Props {
+  userId: string;
   despesaEditando: DespesaTipo | null;
   onSalvo: () => void;
 }
 
-const DespesasForm: React.FC<Props> = ({ despesaEditando, onSalvo }) => {
+const DespesasForm: React.FC<Props> = ({ userId, despesaEditando, onSalvo }) => {
   const [descricao, setDescricao] = useState('');
   const [valor, setValor] = useState('');
   const [data, setData] = useState('');
   const [parcelas, setParcelas] = useState(1);
-  const [fixa, setFixa] = useState(false);
+  const [fixo, setfixo] = useState(false);
   const [categoriaId, setCategoriaId] = useState(categoriasPredefinidas[0].id);
   const [tipoPagamento, setTipoPagamento] = useState<'debito' | 'credito'>('debito');
   const [cartao, setCartao] = useState('');
@@ -40,7 +41,7 @@ const DespesasForm: React.FC<Props> = ({ despesaEditando, onSalvo }) => {
       setValor(String(despesaEditando.valor));
       setData(despesaEditando.data);
       setParcelas(despesaEditando.parcelas);
-      setFixa(despesaEditando.fixa);
+      setfixo(despesaEditando.fixo);
       setCategoriaId(despesaEditando.categoria.id);
       setTipoPagamento(despesaEditando.tipoPagamento || 'debito');
       setCartao(despesaEditando.cartao || '');
@@ -49,7 +50,7 @@ const DespesasForm: React.FC<Props> = ({ despesaEditando, onSalvo }) => {
       setValor('');
       setData(new Date().toISOString().split('T')[0]);
       setParcelas(1);
-      setFixa(false);
+      setfixo(false);
       setCategoriaId(categoriasPredefinidas[0].id);
       setTipoPagamento('debito');
       setCartao('');
@@ -63,46 +64,40 @@ const DespesasForm: React.FC<Props> = ({ despesaEditando, onSalvo }) => {
     return isNaN(numero) ? 0 : numero;
   };
 
-  // Função para remover o campo icone da categoria antes de salvar
-  const categoriaUiParaFirestore = (categoriaUi: CategoriaUI) => {
-    const { icone, ...categoriaFirestore } = categoriaUi;
-    return categoriaFirestore;
-  };
-
   const salvarDespesa = async () => {
-  const valorConvertido = limparValor(valor);
-  if (!descricao.trim() || valorConvertido <= 0) return;
+    const valorConvertido = limparValor(valor);
+    if (!descricao.trim() || valorConvertido <= 0) return;
 
-  const categoriaSelecionada: CategoriaUI | undefined = categoriasPredefinidas.find(
-    (c) => c.id === categoriaId
-  );
-  if (!categoriaSelecionada) return;
+    const categoriaSelecionada: CategoriaUI | undefined = categoriasPredefinidas.find(
+      (c) => c.id === categoriaId
+    );
+    if (!categoriaSelecionada) return;
 
-  // Remove a propriedade 'icone' para salvar no Firestore
-  const { icone, ...categoriaParaFirestore } = categoriaSelecionada;
+    const { icone: _icone, ...categoriaParaFirestore } = categoriaSelecionada;
 
-  const dados: DespesaFirestoreToSave = {
-    descricao: descricao.trim(),
-    valor: valorConvertido,
-    data,
-    parcelas,
-    fixa,
-    categoria: categoriaParaFirestore, // <-- categoria correta sem ícone
-    tipoPagamento,
-    ...(tipoPagamento === 'credito' && cartao ? { cartao } : {}),
-  };
+    const dados: DespesaFirestoreToSave = {
+      descricao: descricao.trim(),
+      valor: valorConvertido,
+      data,
+      parcelas,
+      fixo,
+      categoria: categoriaParaFirestore,
+      tipoPagamento,
+      ...(tipoPagamento === 'credito' && cartao ? { cartao } : {}),
+      parcelaAtual: despesaEditando?.parcelaAtual || 1,
+    };
 
-  try {
-    if (despesaEditando?.id) {
-      await updateDocByTipo('despesas', despesaEditando.id, dados);
-    } else {
-      await addDocByTipo('despesas', dados);
+    try {
+      if (despesaEditando?.id) {
+        await updateDespesa(userId, despesaEditando.id, dados);
+      } else {
+        await addDespesa(userId, dados);
+      }
+      onSalvo();
+    } catch (error) {
+      console.error('Erro ao salvar despesa:', error);
     }
-    onSalvo();
-  } catch (error) {
-    console.error('Erro ao salvar despesa:', error);
-  }
-};
+  };
 
   return (
     <form onSubmit={(e) => e.preventDefault()}>
@@ -158,8 +153,8 @@ const DespesasForm: React.FC<Props> = ({ despesaEditando, onSalvo }) => {
       </IonItem>
 
       <IonItem>
-        <IonLabel>Fixa?</IonLabel>
-        <IonToggle checked={fixa} onIonChange={(e) => setFixa(e.detail.checked)} />
+        <IonLabel>fixo?</IonLabel>
+        <IonToggle checked={fixo} onIonChange={(e) => setfixo(e.detail.checked)} />
       </IonItem>
 
       <IonItem>

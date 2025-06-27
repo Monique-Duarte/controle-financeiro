@@ -3,7 +3,7 @@ import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface MesSelectorProps {
-  mesesDisponiveis: string[]; // formato 'yyyy-MM'
+  mesesDisponiveis: string[];
   mesSelecionado: string;
   onChange: (mes: string) => void;
 }

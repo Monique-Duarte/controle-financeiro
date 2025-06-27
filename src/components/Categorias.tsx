@@ -2,50 +2,63 @@ import React, { useState } from 'react';
 import CategoriaItem from './CategoriaItem';
 import { categoriasPredefinidas } from './categoriasPredefinidas';
 import '../App.css';
-import { adicionarDespesa } from '../services/crud-service';
+import { useDespesaStore } from '../hook/useDespesaStore';
 import { getCategoriaPorId } from '../utils/utilsCategorias';
 import { CategoriaUI } from '../types/tipos';
+import { IonToast } from '@ionic/react';
 
 interface CategoriasProps {
   categorias?: CategoriaUI[];
-  valoresPorCategoriaInicial?: Record<string, number[]>;
-  onValoresChange?: (valores: Record<string, number[]>) => void;
   modoEdicao?: boolean;
 }
 
 const Categorias: React.FC<CategoriasProps> = ({
   categorias = categoriasPredefinidas,
-  valoresPorCategoriaInicial = {},
-  onValoresChange,
   modoEdicao = true,
 }) => {
-  const [valoresPorCategoria, setValoresPorCategoria] = useState<Record<string, number[]>>(valoresPorCategoriaInicial);
+  const { adicionarDespesa, valoresPorCategoria, error } = useDespesaStore();
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  React.useEffect(() => {
+    if (error) {
+      setToastMessage(error);
+      setShowToast(true);
+    }
+  }, [error]);
 
   const adicionarValor = async (categoriaId: string, valor: number) => {
     const categoria = getCategoriaPorId(categoriaId);
     if (!categoria) {
-      alert('Categoria inválida');
+      setToastMessage('Categoria inválida.');
+      setShowToast(true);
+      return;
+    }
+
+    if (valor <= 0) {
+      setToastMessage('O valor deve ser maior que zero.');
+      setShowToast(true);
       return;
     }
 
     try {
-      await adicionarDespesa({
-        categoria,          
-        valor: valor.toString(),
-        data: new Date(),
-        observacao: '',
-        parcela: 1,
+      const novaDespesa = {
+        categoria: categoria,
+        valor: valor,
+        data: new Date().toISOString().split('T')[0],
+        descricao: `Lançamento rápido em ${categoria.nome}`,
+        parcelas: 1,
         fixo: false,
-      });
+        tipoPagamento: 'debito' as 'debito' | 'credito',
+      };
 
-      setValoresPorCategoria(prev => {
-        const novosValores = prev[categoriaId] ? [...prev[categoriaId], valor] : [valor];
-        const atualizados = { ...prev, [categoriaId]: novosValores };
-        if (onValoresChange) onValoresChange(atualizados);
-        return atualizados;
-      });
+      await adicionarDespesa(novaDespesa);
+      setToastMessage('Despesa lançada com sucesso!');
+      setShowToast(true);
+
     } catch (error) {
-      alert('Erro ao lançar despesa. Verifique sua conexão.');
+      setToastMessage('Erro ao lançar despesa. Verifique sua conexão.');
+      setShowToast(true);
       console.error('Erro ao salvar despesa:', error);
     }
   };
@@ -61,6 +74,13 @@ const Categorias: React.FC<CategoriasProps> = ({
           modoEdicao={modoEdicao}
         />
       ))}
+      <IonToast
+        isOpen={showToast}
+        onDidDismiss={() => setShowToast(false)}
+        message={toastMessage}
+        duration={2000}
+        color="dark"
+      />
     </div>
   );
 };

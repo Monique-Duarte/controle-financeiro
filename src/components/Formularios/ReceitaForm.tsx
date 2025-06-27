@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   IonButton,
   IonInput,
@@ -9,44 +9,59 @@ import {
 } from '@ionic/react';
 
 import { ReceitaTipo } from '../../types/tipos';
+import { addReceita, updateReceita } from '../../services/receita-service';
 
 interface ReceitaFormProps {
+  userId: string;
   onSalvar: (receita: Omit<ReceitaTipo, 'id'>) => void;
   receita?: ReceitaTipo;
   onCancel?: () => void;
 }
 
-const ReceitaForm: React.FC<ReceitaFormProps> = ({ onSalvar, receita, onCancel }) => {
+const ReceitaForm: React.FC<ReceitaFormProps> = ({ userId, onSalvar, receita, onCancel }) => {
   const [data, setData] = useState('');
   const [descricao, setDescricao] = useState('');
   const [valor, setValor] = useState('');
-  const [fixa, setFixa] = useState(false);
+  const [fixo, setfixo] = useState(false);
 
   useEffect(() => {
     if (receita) {
       setData(receita.data);
       setDescricao(receita.descricao);
       setValor(receita.valor.toString().replace('.', ','));
-      setFixa(receita.fixa);
+      setfixo(receita.fixo);
     } else {
       const hoje = new Date().toISOString().split('T')[0];
       setData(hoje);
+      setDescricao('');
+      setValor('');
+      setfixo(false);
     }
   }, [receita]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const valorNumerico = parseFloat(valor.replace(',', '.'));
     if (!descricao.trim() || isNaN(valorNumerico) || valorNumerico <= 0) return;
 
-    // Capitaliza a primeira letra ao salvar
     const descricaoCapitalizada = descricao.trim().charAt(0).toUpperCase() + descricao.trim().slice(1);
 
-    onSalvar({
+    const receitaParaSalvar: Omit<ReceitaTipo, 'id'> = {
       data,
       descricao: descricaoCapitalizada,
       valor: valorNumerico,
-      fixa,
-    });
+      fixo,
+    };
+
+    try {
+      if (receita?.id) {
+        await updateReceita(userId, receita.id, receitaParaSalvar);
+      } else {
+        await addReceita(userId, receitaParaSalvar);
+      }
+      onSalvar(receitaParaSalvar);
+    } catch (error) {
+      console.error('Erro ao salvar receita:', error);
+    }
   };
 
   const isFormValido =
@@ -72,7 +87,6 @@ const ReceitaForm: React.FC<ReceitaFormProps> = ({ onSalvar, receita, onCancel }
           value={descricao}
           onIonChange={e => {
             const val = e.detail.value || '';
-            // Capitaliza a primeira letra enquanto digita
             const valCapitalized = val.charAt(0).toUpperCase() + val.slice(1);
             setDescricao(valCapitalized);
           }}
@@ -92,7 +106,7 @@ const ReceitaForm: React.FC<ReceitaFormProps> = ({ onSalvar, receita, onCancel }
       </IonItem>
       <IonItem lines="none">
         <IonLabel>Fixo?</IonLabel>
-        <IonToggle checked={fixa} onIonChange={e => setFixa(e.detail.checked)} />
+        <IonToggle checked={fixo} onIonChange={e => setfixo(e.detail.checked)} />
       </IonItem>
 
       <IonButton

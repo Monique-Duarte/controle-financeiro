@@ -6,7 +6,7 @@ import { somarValoresPorCategoria } from '../../utils/somaPorCategorias';
 import '../../styles/Graficos.css';
 
 interface Props {
-  despesas: DespesaTipo[];  
+  despesas: DespesaTipo[];
 }
 
 const renderActiveShape = (props: any) => {

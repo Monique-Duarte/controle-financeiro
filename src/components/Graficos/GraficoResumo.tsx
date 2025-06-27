@@ -11,32 +11,22 @@ import {
 import '../../styles/Graficos.css';
 
 interface GraficoResumoProps {
-  receitas: number[];
-  valoresPorCategoria: Record<string, number[]>;
+  totalReceitasMensal: number;
+  totalDespesasMensal: number;
 }
 
 const GraficoResumo: React.FC<GraficoResumoProps> = ({
-  receitas,
-  valoresPorCategoria,
+  totalReceitasMensal,
+  totalDespesasMensal,
 }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const totalReceitas = useMemo(() => {
-    return receitas.reduce((acc, val) => acc + val, 0);
-  }, [receitas]);
-
-  const totalDespesas = useMemo(() => {
-    return Object.values(valoresPorCategoria)
-      .flat()
-      .reduce((acc, val) => acc + val, 0);
-  }, [valoresPorCategoria]);
-
   const dadosResumo = useMemo(
     () => [
-      { name: 'Receitas', value: totalReceitas, color: '#10b981' },
-      { name: 'Despesas', value: totalDespesas, color: '#ef4444' },
+      { name: 'Receitas', value: totalReceitasMensal, color: '#10b981' },
+      { name: 'Despesas', value: totalDespesasMensal, color: '#ef4444' },
     ],
-    [totalReceitas, totalDespesas]
+    [totalReceitasMensal, totalDespesasMensal]
   );
 
   const onBarClick = (_: any, index: number) => {
@@ -45,20 +35,28 @@ const GraficoResumo: React.FC<GraficoResumoProps> = ({
   const onLegendClick = (index: number) =>
     setActiveIndex(index === activeIndex ? null : index);
 
-  const saldo = totalReceitas - totalDespesas;
+  const saldoMensal = totalReceitasMensal - totalDespesasMensal;
 
-  if (totalReceitas === 0 && totalDespesas === 0) {
-    return <p className="no-data-message">Nenhum dado para exibir.</p>;
+  const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+  ];
+  const currentMonthName = monthNames[new Date().getMonth()];
+  const currentYear = new Date().getFullYear();
+
+  const titleText = `Saldo ${currentMonthName}/${currentYear}: R$ ${saldoMensal.toFixed(2)}`;
+
+  if (totalReceitasMensal === 0 && totalDespesasMensal === 0) {
+    return <p className="no-data-message">Nenhum dado para exibir para {currentMonthName}/{currentYear}.</p>;
   }
 
   return (
     <div className="chart-container" style={{ position: 'relative' }}>
       <div
         className={`saldo-text-container ${
-          saldo >= 0 ? 'positivo' : 'negativo'
+          saldoMensal >= 0 ? 'positivo' : 'negativo'
         }`}
       >
-        Saldo: R$ {saldo.toFixed(2)}
+        {titleText}
       </div>
 
       <ResponsiveContainer width="100%" aspect={1}>
@@ -67,7 +65,7 @@ const GraficoResumo: React.FC<GraficoResumoProps> = ({
           <YAxis />
           <Tooltip
             cursor={{ fill: 'transparent' }}
-            content={null} // desabilita tooltip padrão
+            content={null}
           />
           <Bar dataKey="value" onClick={(data, index) => onBarClick(data, index)}>
             {dadosResumo.map((entry, index) => (
@@ -81,8 +79,6 @@ const GraficoResumo: React.FC<GraficoResumoProps> = ({
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-
-
 
       <div className="chart-legend">
         {dadosResumo.map((entry, index) => (
@@ -102,7 +98,7 @@ const GraficoResumo: React.FC<GraficoResumoProps> = ({
             />
             <span className="legend-label">
               {entry.name} (
-              {((entry.value / (totalReceitas + totalDespesas)) * 100).toFixed(1)}
+              {((entry.value / (totalReceitasMensal + totalDespesasMensal)) * 100).toFixed(1)}
               %)
             </span>
           </div>

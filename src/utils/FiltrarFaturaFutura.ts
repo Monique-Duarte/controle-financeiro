@@ -1,9 +1,6 @@
 import { DespesaTipo, Cartao } from '../types/tipos';
 import { parseISO, isWithinInterval } from 'date-fns';
 
-/**
- * Verifica se a data da despesa está dentro do ciclo da fatura com base na configuração do cartão.
- */
 function estaDentroDoCicloDeFatura(
   dataDespesaStr: string,
   dataReferenciaStr: string,
@@ -21,9 +18,6 @@ function estaDentroDoCicloDeFatura(
   return isWithinInterval(dataDespesa, { start: inicio, end: fim });
 }
 
-/**
- * Agrupa as despesas por cartão e calcula o total de todas as faturas do mês atual.
- */
 export function filtrarDespesasPorCartoes(
   despesas: DespesaTipo[],
   configuracoes: Cartao[],
@@ -37,13 +31,12 @@ export function filtrarDespesasPorCartoes(
 
   despesas.forEach((despesa) => {
     if (despesa.tipoPagamento !== 'credito' || !despesa.cartao) return;
-
-    const config = configuracoes.find((c) => c.id === despesa.cartao);
+    const config = configuracoes.find((c) => c.nomeCartao === despesa.cartao);
     if (!config) return;
 
     if (estaDentroDoCicloDeFatura(despesa.data, dataAtual, config)) {
-      if (!despesasPorCartao[config.id]) despesasPorCartao[config.id] = [];
-      despesasPorCartao[config.id].push(despesa);
+      if (!despesasPorCartao[config.nomeCartao]) despesasPorCartao[config.nomeCartao] = [];
+      despesasPorCartao[config.nomeCartao].push(despesa);
       totalFaturasMes += despesa.valor;
     }
   });

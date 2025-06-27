@@ -10,7 +10,7 @@ export interface Receita {
   descricao: string;
   data: string; // ou Date
   valor: number;
-  fixa?: boolean;
+  fixo?: boolean;
 }
 
 export interface Despesa {

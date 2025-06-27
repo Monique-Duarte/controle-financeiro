@@ -1,18 +1,34 @@
-import React, { useEffect } from 'react';
-import { useFinanceStore } from '../hook/useFinanceStore';
+import React from 'react';
+import { useFinanceStorage } from '../hook/useFinanceStorage';
 import GraficoResumo from './Graficos/GraficoResumo';
+import { IonContent, IonLoading, IonText } from '@ionic/react';
 
 const ResumoContainer: React.FC = () => {
-  const receitas = useFinanceStore(state => state.receitas);
-  const valoresPorCategoria = useFinanceStore(state => state.valoresPorCategoria);
-  const iniciarEscuta = useFinanceStore(state => state.iniciarEscuta);
+  const { totalReceitasMensal, totalDespesasMensal, loading, error } = useFinanceStorage();
 
-  useEffect(() => {
-    iniciarEscuta();
-  }, [iniciarEscuta]);
+  if (loading) {
+    return (
+      <IonContent className="ion-padding ion-text-center">
+        <IonLoading isOpen={loading} message={'Carregando resumo financeiro...'} spinner="crescent" />
+      </IonContent>
+    );
+  }
+
+  if (error) {
+    return (
+      <IonContent className="ion-padding ion-text-center">
+        <IonText color="danger">
+          <p>Erro ao carregar dados: {error}</p>
+        </IonText>
+      </IonContent>
+    );
+  }
 
   return (
-    <GraficoResumo receitas={receitas} valoresPorCategoria={valoresPorCategoria} />
+    <GraficoResumo
+      totalReceitasMensal={totalReceitasMensal}
+      totalDespesasMensal={totalDespesasMensal}
+    />
   );
 };
 

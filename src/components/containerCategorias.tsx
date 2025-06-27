@@ -1,32 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import { db } from '../services/firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
 import GraficoCategorias from './Graficos/GraficoCategorias';
-import { DespesaFirestore } from '../types/tipos';
+import { useDespesaStore } from '../hook/useDespesaStore';
+import { IonContent, IonLoading, IonText } from '@ionic/react';
 
 const CategoriasContainer: React.FC = () => {
-  const [despesas, setDespesas] = useState<DespesaFirestore[]>([]);
-  const [carregando, setCarregando] = useState(true);
+  const { despesas, loading, error } = useDespesaStore();
 
-  useEffect(() => {
-    const colRef = collection(db, 'financas', 'global', 'despesas');
+  if (loading) {
+    return (
+      <IonContent className="ion-padding ion-text-center">
+        <IonLoading isOpen={loading} message={'Carregando categorias...'} spinner="crescent" />
+      </IonContent>
+    );
+  }
 
-    // onSnapshot escuta atualizações em tempo real
-    const unsubscribe = onSnapshot(colRef, (snapshot) => {
-      const dados = snapshot.docs.map(doc => doc.data() as DespesaFirestore);
-      setDespesas(dados);
-      setCarregando(false);
-    }, (erro) => {
-      console.error('Erro ao buscar despesas:', erro);
-      setCarregando(false);
-    });
-
-    // Limpa o listener quando o componente desmonta
-    return () => unsubscribe();
-  }, []);
-
-  if (carregando) return <p>Carregando...</p>;
-  if (!despesas.length) return <p>Nenhuma despesa registrada.</p>;
+  if (error) {
+    return (
+      <IonContent className="ion-padding ion-text-center">
+        <IonText color="danger">
+          <p>Erro ao carregar categorias: {error}</p>
+        </IonText>
+      </IonContent>
+    );
+  }
 
   return <GraficoCategorias despesas={despesas} />;
 };

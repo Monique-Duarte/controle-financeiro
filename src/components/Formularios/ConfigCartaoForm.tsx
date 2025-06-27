@@ -2,14 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Cartao } from '../../types/tipos';
 import '../../styles/Fatura.css';
 import '../../styles/btn.css';
+import { addCartao, updateCartao } from '../../services/cartao-service';
 
 interface Props {
+  userId: string;
   onSalvar: (cartao: Omit<Cartao, 'id'>) => void;
   cartao?: Cartao;
   onCancel: () => void;
 }
 
-const ConfiguracaoCartaoForm: React.FC<Props> = ({ onSalvar, cartao, onCancel }) => {
+const ConfiguracaoCartaoForm: React.FC<Props> = ({ userId, onSalvar, cartao, onCancel }) => {
   const [nomeCartao, setNomeCartao] = useState('');
   const [fechamentoFatura, setFechamentoFatura] = useState<number | undefined>(undefined);
   const [pagamentoFatura, setPagamentoFatura] = useState<number | undefined>(undefined);
@@ -19,12 +21,32 @@ const ConfiguracaoCartaoForm: React.FC<Props> = ({ onSalvar, cartao, onCancel })
       setNomeCartao(cartao.nomeCartao);
       setFechamentoFatura(cartao.fechamentoFatura);
       setPagamentoFatura(cartao.pagamentoFatura);
+    } else {
+      setNomeCartao('');
+      setFechamentoFatura(undefined);
+      setPagamentoFatura(undefined);
     }
   }, [cartao]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!nomeCartao || !fechamentoFatura || !pagamentoFatura) return;
-    onSalvar({ nomeCartao, fechamentoFatura, pagamentoFatura });
+
+    const cartaoParaSalvar: Omit<Cartao, 'id'> = {
+      nomeCartao,
+      fechamentoFatura,
+      pagamentoFatura
+    };
+
+    try {
+      if (cartao?.id) {
+        await updateCartao(userId, cartao.id, cartaoParaSalvar);
+      } else {
+        await addCartao(userId, cartaoParaSalvar);
+      }
+      onSalvar(cartaoParaSalvar);
+    } catch (error) {
+      console.error('Erro ao salvar cartão:', error);
+    }
   };
 
   return (
@@ -46,7 +68,7 @@ const ConfiguracaoCartaoForm: React.FC<Props> = ({ onSalvar, cartao, onCancel })
           <input
             type="number"
             className="input-text"
-            value={fechamentoFatura}
+            value={fechamentoFatura || ''}
             onChange={(e) => setFechamentoFatura(Number(e.target.value))}
             min={1}
             max={31}
@@ -58,7 +80,7 @@ const ConfiguracaoCartaoForm: React.FC<Props> = ({ onSalvar, cartao, onCancel })
           <input
             type="number"
             className="input-text"
-            value={pagamentoFatura}
+            value={pagamentoFatura || ''}
             onChange={(e) => setPagamentoFatura(Number(e.target.value))}
             min={1}
             max={31}
